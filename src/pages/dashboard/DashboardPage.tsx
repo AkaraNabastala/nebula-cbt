@@ -115,7 +115,7 @@ export function DashboardPage({
               </div>
             </details>}
             {role === "STUDENT" && <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={navClass(page === "exams")}><ClipboardList size={17} /> Ujian saya</button>}
-            {role === "ADMIN" && <details className="group rounded-lg" open={["academicYears", "academicSubjects", "academicClasses", "users", "enrollments", "teacherAssignments", "audit"].includes(page)}>
+            {role === "ADMIN" && <details className="group rounded-lg" open={["academicYears", "academicSubjects", "academicClasses", "users", "enrollments", "teacherAssignments"].includes(page)}>
               <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-xs font-semibold text-app-muted hover:bg-app-bg hover:text-app-text">
                 <span>Administrasi sekolah</span><span aria-hidden="true" className="text-app-muted transition-transform group-open:rotate-90">›</span>
               </summary>
@@ -124,9 +124,15 @@ export function DashboardPage({
                 <button type="button" onClick={() => setPage("academicYears")} aria-current={page === "academicYears" ? "page" : undefined} className={navClass(page === "academicYears")}><GraduationCap size={16} /> Tahun ajaran</button>
                 <button type="button" onClick={() => setPage("academicSubjects")} aria-current={page === "academicSubjects" ? "page" : undefined} className={navClass(page === "academicSubjects")}><BookOpen size={16} /> Mata pelajaran</button>
                 <button type="button" onClick={() => setPage("academicClasses")} aria-current={page === "academicClasses" ? "page" : undefined} className={navClass(page === "academicClasses")}><Users size={16} /> Kelas</button>
-                <button type="button" onClick={() => setPage("users")} aria-current={page === "users" ? "page" : undefined} className={navClass(page === "users")}><Users size={16} /> Pengguna dan hak akses</button>
+                <button type="button" onClick={() => setPage("users")} aria-current={page === "users" ? "page" : undefined} className={navClass(page === "users")}><Users size={16} /> Akun pengguna</button>
                 <button type="button" onClick={() => setPage("enrollments")} aria-current={page === "enrollments" ? "page" : undefined} className={navClass(page === "enrollments")}><Users size={16} /> Penempatan siswa</button>
                 <button type="button" onClick={() => setPage("teacherAssignments")} aria-current={page === "teacherAssignments" ? "page" : undefined} className={navClass(page === "teacherAssignments")}><GraduationCap size={16} /> Penugasan guru</button>
+
+              </div>
+            </details>}
+            {role === "ADMIN" && <details className="group rounded-lg" open={page === "audit"}>
+              <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-xs font-semibold text-app-muted hover:bg-app-bg hover:text-app-text"><span>Sistem</span><span aria-hidden="true" className="text-app-muted transition-transform group-open:rotate-90">›</span></summary>
+              <div className="mt-1 space-y-1 pl-2">
                 <button type="button" onClick={() => setPage("audit")} aria-current={page === "audit" ? "page" : undefined} className={navClass(page === "audit")}><ShieldCheck size={16} /> Audit log</button>
               </div>
             </details>}
@@ -185,6 +191,12 @@ export function DashboardPage({
                 <button type="button" onClick={() => setPage("users")} aria-current={page === "users" ? "page" : undefined} className={navClass(page === "users")}><Users size={16} /> Akun pengguna</button>
                 <button type="button" onClick={() => setPage("enrollments")} aria-current={page === "enrollments" ? "page" : undefined} className={navClass(page === "enrollments")}><Users size={16} /> Penempatan siswa</button>
                 <button type="button" onClick={() => setPage("teacherAssignments")} aria-current={page === "teacherAssignments" ? "page" : undefined} className={navClass(page === "teacherAssignments")}><GraduationCap size={16} /> Penugasan guru</button>
+
+              </div>
+            </details>}
+            {role === "ADMIN" && <details className="group rounded-lg">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-sm font-semibold text-app-muted hover:bg-app-bg hover:text-app-text"><span>Sistem</span><span aria-hidden="true">›</span></summary>
+              <div className="space-y-1 pl-3">
                 <button type="button" onClick={() => setPage("audit")} aria-current={page === "audit" ? "page" : undefined} className={navClass(page === "audit")}><ShieldCheck size={16} /> Audit log</button>
               </div>
             </details>}
