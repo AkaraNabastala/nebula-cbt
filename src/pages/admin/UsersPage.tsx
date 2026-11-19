@@ -86,7 +86,8 @@ export function UsersPage({ token }: { token: string | null }) {
     event.preventDefault();
     if (!token) return;
 
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const payload = {
       fullName: String(form.get("fullName") || ""),
       identifierType: String(form.get("identifierType") || "USERNAME"),
@@ -104,14 +105,17 @@ export function UsersPage({ token }: { token: string | null }) {
         token,
         body: JSON.stringify(payload),
       });
-      event.currentTarget.reset();
+      formElement.reset();
       setIsCreating(false);
       setPage(1);
       setSearch("");
       setSearchInput("");
       setStatusFilter("");
       setNotice("Akun berhasil dibuat. Pengguna wajib mengganti password saat login pertama.");
-      await loadUsers();
+      const refreshed = await apiRequest<UsersResponse>("/users?page=1&limit=20", { token });
+      setUsers(refreshed.data);
+      setTotal(refreshed.pagination.total);
+      setTotalPages(Math.max(1, refreshed.pagination.totalPages));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Akun gagal dibuat.");
     } finally {
@@ -250,11 +254,13 @@ export function UsersPage({ token }: { token: string | null }) {
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <form onSubmit={handleSearch} className="flex min-w-0 gap-2">
-              <label htmlFor="users-search" className="sr-only">Cari nama atau identitas</label>
-              <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-app-border bg-app-input px-3">
-                <Search size={16} className="shrink-0 text-app-muted" aria-hidden="true" />
-                <input id="users-search" value={searchInput} onChange={(event) => setSearchInput(event.target.value)}
-                  placeholder="Cari nama atau identitas" className="min-h-11 min-w-0 w-full bg-transparent text-sm text-app-text outline-none" />
+              <div className="min-w-0 flex-1">
+                <label htmlFor="users-search" className="mb-1 block text-xs font-medium text-app-text">Cari pengguna</label>
+                <div className="flex min-w-0 items-center gap-2 rounded-lg border border-app-border bg-app-input px-3">
+                  <Search size={16} className="shrink-0 text-app-muted" aria-hidden="true" />
+                  <input id="users-search" value={searchInput} onChange={(event) => setSearchInput(event.target.value)}
+                    placeholder="Nama atau identitas" className="min-h-11 min-w-0 w-full bg-transparent text-sm text-app-text outline-none" />
+                </div>
               </div>
               <button type="submit" className="min-h-11 rounded-lg border border-app-border px-3 text-sm font-medium text-app-text hover:bg-app-bg">Cari</button>
             </form>
@@ -297,7 +303,7 @@ export function UsersPage({ token }: { token: string | null }) {
                   </div>
                   <p className="mt-2 text-xs text-app-muted">Login terakhir: {formatDate(user.lastLoginAt)}</p>
                 </div>
-                <button type="button" disabled={changingId === user.id || user.status === "SUSPENDED"}
+                <button type="button" disabled={changingId === user.id}
                   onClick={() => void handleStatusChange(user)}
                   className="min-h-11 shrink-0 rounded-lg border border-app-border px-3 text-xs font-semibold text-app-text hover:bg-app-bg disabled:cursor-not-allowed disabled:opacity-50">
                   {changingId === user.id ? "Memproses..." : user.status === "ACTIVE" ? "Nonaktifkan" : user.status === "SUSPENDED" ? "Ditangguhkan" : "Aktifkan"}
