@@ -5,10 +5,12 @@ import type { PrismaService } from '../prisma/prisma.service.js';
 describe('StudentExamsService', () => {
   const tx = {
     examParticipant: { findFirst: vi.fn(), update: vi.fn() },
-    attempt: { create: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
+    attempt: { create: vi.fn(), findFirst: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
     attemptDeviceSession: { findFirst: vi.fn(), updateMany: vi.fn(), create: vi.fn() },
     attemptSyncLog: { findUnique: vi.fn(), create: vi.fn() },
     attemptAnswer: { findUnique: vi.fn(), upsert: vi.fn() },
+    attemptSubmissionReceipt: { create: vi.fn() },
+    examResult: { create: vi.fn() },
   };
   const prisma = {
     $transaction: vi.fn(),
@@ -163,6 +165,83 @@ describe('StudentExamsService', () => {
       }),
     }));
     expect(tx.attemptSyncLog.create).toHaveBeenCalled();
+  });
+
+
+  it('submits the attempt, creates a receipt, and calculates objective score', async () => {
+    const submittedAt = new Date();
+    vi.mocked(prisma.studentProfile.findUnique).mockResolvedValue({ id: 'student-profile-1' } as never);
+    vi.mocked(prisma.$transaction).mockImplementation(
+      ((callback: (client: typeof tx) => Promise<unknown>) => callback(tx)) as never,
+    );
+    vi.mocked(tx.attempt.findFirst).mockResolvedValue({
+      id: 'attempt-1',
+      status: 'IN_PROGRESS',
+      deadlineAt: new Date(Date.now() + 10 * 60_000),
+      receipt: null,
+    } as never);
+    vi.mocked(tx.attemptDeviceSession.findFirst).mockResolvedValue({
+      id: 'device-session-1',
+      attempt: { participant: { studentProfileId: 'student-profile-1' } },
+    } as never);
+    vi.mocked(tx.attempt.findUnique).mockResolvedValue({
+      id: 'attempt-1',
+      participantId: 'participant-1',
+      status: 'IN_PROGRESS',
+      answers: [{
+        id: 'answer-1',
+        examPaperQuestionId: 'paper-question-1',
+        answerData: { selectedOptionId: 'option-a' },
+      }],
+      receipt: null,
+      participant: {
+        schoolClassId: 'class-1',
+        examPaper: {
+          maxScore: '2',
+          questions: [{
+            id: 'paper-question-1',
+            points: '2',
+            questionSnapshot: {
+              type: 'SINGLE_CHOICE',
+              options: [{ id: 'option-a', label: 'A' }],
+            },
+            answerKeySnapshot: { answerData: { correctLabels: ['A'] } },
+          }],
+        },
+        examSchedule: {
+          exam: {
+            subjectId: 'subject-1',
+            assessmentEvent: { academicYearId: 'year-1' },
+          },
+        },
+      },
+    } as never);
+    vi.mocked(tx.attemptSubmissionReceipt.create).mockResolvedValue({
+      receiptCode: 'NBL-ABC123',
+      answerCount: 1,
+      submittedAt,
+    } as never);
+
+    const result = await service.submit('attempt-1', 'session-token', { id: 'student-user-1' });
+
+    expect(result).toMatchObject({
+      status: 'SUBMITTED',
+      receipt: { receiptCode: 'NBL-ABC123', answerCount: 1 },
+      alreadySubmitted: false,
+    });
+    expect(tx.examResult.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        attemptId: 'attempt-1',
+        academicYearId: 'year-1',
+        schoolClassId: 'class-1',
+        subjectId: 'subject-1',
+        rawScore: 2,
+        finalScore: 2,
+        maxScore: 2,
+        status: 'GRADED',
+      }),
+    }));
+    expect(tx.attemptSubmissionReceipt.create).toHaveBeenCalled();
   });
 
 });
