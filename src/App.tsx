@@ -107,8 +107,12 @@ function App() {
     ? "account"
     : pathname === "/admin/users"
       ? "users"
-      : pathname === "/admin/academic"
-        ? "academic"
+      : pathname === "/admin/academic/years" || pathname === "/admin/academic"
+        ? "academicYears"
+        : pathname === "/admin/academic/subjects"
+          ? "academicSubjects"
+          : pathname === "/admin/academic/classes"
+            ? "academicClasses"
         : pathname === "/admin/questions" || pathname === "/guru/questions"
           ? "questions"
           : pathname === "/admin/exams" || pathname === "/guru/exams"
@@ -132,7 +136,9 @@ function App() {
         const paths = {
           account: "/account",
           users: "/admin/users",
-          academic: "/admin/academic",
+          academicYears: "/admin/academic/years",
+          academicSubjects: "/admin/academic/subjects",
+          academicClasses: "/admin/academic/classes",
           questions: role === "ADMIN" ? "/admin/questions" : "/guru/questions",
           exams: role === "ADMIN" ? "/admin/exams" : role === "TEACHER" ? "/guru/exams" : "/siswa/exams",
           results: role === "ADMIN" ? "/admin/results" : "/guru/results",
