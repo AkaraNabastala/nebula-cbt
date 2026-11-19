@@ -64,11 +64,16 @@ input {
   font: inherit;
 }
 
-button {
+button,
+select,
+label[for],
+input[type="checkbox"],
+input[type="radio"] {
   cursor: pointer;
 }
 
-button:disabled {
+button:disabled,
+select:disabled {
   cursor: not-allowed;
 }
 
