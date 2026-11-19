@@ -53,7 +53,7 @@ export class StudentExamsService {
             exam: { select: { id: true, name: true, status: true, subject: { select: { name: true } }, assessmentEvent: { select: { name: true } } } },
           },
         },
-        attempt: { select: { id: true, status: true, startedAt: true, deadlineAt: true, submittedAt: true } },
+        attempt: { select: { id: true, status: true, startedAt: true, deadlineAt: true, submittedAt: true, receipt: true } },
       },
     });
     return rows.map((row) => ({
