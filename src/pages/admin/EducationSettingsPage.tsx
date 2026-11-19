@@ -88,7 +88,7 @@ export function EducationSettingsPage({ token }: { token: string | null }) {
     <section className="mx-auto max-w-4xl space-y-5">
       <header className="rounded-2xl border border-app-border bg-app-surface p-5 sm:p-6">
         <p className="text-xs font-semibold tracking-[0.12em] text-[#318BCB]">KONFIGURASI CBT</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-app-text">Struktur pendidikan</h1>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-app-text">{settings.educationLevel === "Belum ditentukan" ? "Setup awal lembaga" : "Struktur pendidikan"}</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-app-muted">Atur jenjang lembaga dan pengelompokan jurusan sesuai kebutuhan. Pengaturan ini tidak membatasi pembuatan mata pelajaran atau ujian.</p>
       </header>
 
@@ -104,7 +104,7 @@ export function EducationSettingsPage({ token }: { token: string | null }) {
             </label>
             <label className="block text-sm font-medium text-app-text">Jenjang pendidikan
               <select value={settings.educationLevel} onChange={(event) => setSettings((current) => ({ ...current, educationLevel: event.target.value }))} className={inputClass}>
-                <option value="Belum ditentukan">Pilih jenjang pendidikan</option>\n                <option value="SD/MI">SD/MI</option>
+                <option value="Belum ditentukan" disabled>Pilih jenjang pendidikan</option>\n                <option value="SD/MI">SD/MI</option>
                 <option value="SMP/MTs">SMP/MTs</option>
                 <option value="SMA/MA">SMA/MA</option>
                 <option value="SMK">SMK</option>
