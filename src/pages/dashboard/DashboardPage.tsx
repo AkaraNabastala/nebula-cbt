@@ -85,34 +85,32 @@ export function DashboardPage({
         <Brand />
         <div className="mt-10">
           <p className="mb-3 px-3 text-[10px] font-semibold tracking-[0.15em] text-app-muted">WORKSPACE</p>
-          <nav aria-label="Navigasi utama" className="space-y-1">
+          <nav aria-label="Navigasi utama" className="space-y-2">
             <button type="button" onClick={() => setPage("dashboard")} aria-current={page === "dashboard" ? "page" : undefined} className={navClass(page === "dashboard")}>
               <LayoutDashboard size={17} /> Ringkasan
             </button>
-            {(role === "ADMIN" || role === "TEACHER") && (
-              <button type="button" onClick={() => setPage("questions")} aria-current={page === "questions" ? "page" : undefined} className={navClass(page === "questions")}>
-                <BookOpen size={17} /> Bank soal
-              </button>
-            )}
-            {(role === "ADMIN" || role === "TEACHER") && (
-              <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={navClass(page === "exams")}>
-                <ClipboardList size={17} /> Operasional ujian
-              </button>
-            )}
-            {role === "ADMIN" && (
-              <button type="button" onClick={() => setPage("academic")} aria-current={page === "academic" ? "page" : undefined} className={navClass(page === "academic")}>
-                <GraduationCap size={17} /> Akademik dan Kelas
-              </button>
-            )}
-            {role === "ADMIN" && (
-              <button type="button" onClick={() => setPage("users")} aria-current={page === "users" ? "page" : undefined} className={navClass(page === "users")}>
-                <Users size={17} /> Pengguna dan Hak Akses
-              </button>
-            )}
-            {(role === "ADMIN" || role === "TEACHER") && <button type="button" onClick={() => setPage("results")} aria-current={page === "results" ? "page" : undefined} className={navClass(page === "results")}><GraduationCap size={17} /> Penilaian dan hasil</button>}
-            {role === "ADMIN" && <button type="button" onClick={() => setPage("people")} aria-current={page === "people" ? "page" : undefined} className={navClass(page === "people")}><Users size={17} /> Siswa dan penugasan</button>}
-            {role === "ADMIN" && <button type="button" onClick={() => setPage("audit")} aria-current={page === "audit" ? "page" : undefined} className={navClass(page === "audit")}><ShieldCheck size={17} /> Audit log</button>}
+            {(role === "ADMIN" || role === "TEACHER") && <details className="group rounded-lg" open={["questions", "exams", "results"].includes(page)}>
+              <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-xs font-semibold text-app-muted hover:bg-app-bg hover:text-app-text">
+                <span>Asesmen</span><span aria-hidden="true" className="text-app-muted transition-transform group-open:rotate-90">›</span>
+              </summary>
+              <div className="mt-1 space-y-1 pl-2">
+                <button type="button" onClick={() => setPage("questions")} aria-current={page === "questions" ? "page" : undefined} className={navClass(page === "questions")}><BookOpen size={16} /> Bank soal</button>
+                <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={navClass(page === "exams")}><ClipboardList size={16} /> Operasional ujian</button>
+                <button type="button" onClick={() => setPage("results")} aria-current={page === "results" ? "page" : undefined} className={navClass(page === "results")}><GraduationCap size={16} /> Penilaian dan hasil</button>
+              </div>
+            </details>}
             {role === "STUDENT" && <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={navClass(page === "exams")}><ClipboardList size={17} /> Ujian saya</button>}
+            {role === "ADMIN" && <details className="group rounded-lg" open={["academic", "users", "people", "audit"].includes(page)}>
+              <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-xs font-semibold text-app-muted hover:bg-app-bg hover:text-app-text">
+                <span>Administrasi sekolah</span><span aria-hidden="true" className="text-app-muted transition-transform group-open:rotate-90">›</span>
+              </summary>
+              <div className="mt-1 space-y-1 pl-2">
+                <button type="button" onClick={() => setPage("academic")} aria-current={page === "academic" ? "page" : undefined} className={navClass(page === "academic")}><GraduationCap size={16} /> Akademik</button>
+                <button type="button" onClick={() => setPage("users")} aria-current={page === "users" ? "page" : undefined} className={navClass(page === "users")}><Users size={16} /> Pengguna dan hak akses</button>
+                <button type="button" onClick={() => setPage("people")} aria-current={page === "people" ? "page" : undefined} className={navClass(page === "people")}><Users size={16} /> Siswa dan penugasan</button>
+                <button type="button" onClick={() => setPage("audit")} aria-current={page === "audit" ? "page" : undefined} className={navClass(page === "audit")}><ShieldCheck size={16} /> Audit log</button>
+              </div>
+            </details>}
             <button type="button" onClick={() => setPage("account")} aria-current={page === "account" ? "page" : undefined} className={navClass(page === "account")}>
               <UserRound size={17} /> Akun saya
             </button>
