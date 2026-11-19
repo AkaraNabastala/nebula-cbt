@@ -18,6 +18,7 @@ import { UsersPage } from "../admin/UsersPage";
 import { AcademicPage } from "../admin/AcademicPage";
 import { QuestionsPage } from "../guru/QuestionsPage";
 import { ExamOperationsPage } from "../guru/ExamOperationsPage";
+import { StudentExamsPage } from "../siswa/StudentExamsPage";
 
 export type DashboardSection = "dashboard" | "account" | "users" | "academic" | "questions" | "exams";
 
@@ -105,6 +106,7 @@ export function DashboardPage({
                 <Users size={17} /> Pengguna dan Hak Akses
               </button>
             )}
+            {role === "STUDENT" && <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={navClass(page === "exams")}><ClipboardList size={17} /> Ujian saya</button>}
             <button type="button" onClick={() => setPage("account")} aria-current={page === "account" ? "page" : undefined} className={navClass(page === "account")}>
               <UserRound size={17} /> Akun saya
             </button>
@@ -139,6 +141,7 @@ export function DashboardPage({
           {(role === "ADMIN" || role === "TEACHER") && <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "exams" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Ujian</button>}
           {role === "ADMIN" && <button type="button" onClick={() => setPage("academic")} aria-current={page === "academic" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "academic" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Akademik</button>}
           {role === "ADMIN" && <button type="button" onClick={() => setPage("users")} aria-current={page === "users" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "users" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Pengguna</button>}
+          {role === "STUDENT" && <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className="min-h-11 rounded-lg px-3 text-xs font-medium text-app-muted">Ujian saya</button>}
           <button type="button" onClick={() => setPage("account")} aria-current={page === "account" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "account" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Akun saya</button>
         </nav>
 
@@ -148,6 +151,7 @@ export function DashboardPage({
               : page === "academic" && role === "ADMIN" ? <AcademicPage token={token} />
                 : page === "questions" && (role === "ADMIN" || role === "TEACHER") ? <QuestionsPage token={token} />
                   : page === "exams" && (role === "ADMIN" || role === "TEACHER") ? <ExamOperationsPage token={token} />
+                    : page === "exams" && role === "STUDENT" ? <StudentExamsPage token={token} />
                     : role === "ADMIN" ? <AdminDashboardPage user={user} detail={detail} />
                     : role === "TEACHER" ? <GuruDashboardPage user={user} detail={detail} />
                       : <SiswaDashboardPage user={user} detail={detail} />}
