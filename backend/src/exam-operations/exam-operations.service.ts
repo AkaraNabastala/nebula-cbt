@@ -196,7 +196,7 @@ export class ExamOperationsService {
       });
       const paper = await tx.examPaper.create({
         data: {
-          name: `${dto.name.trim()} — Paket utama`,
+          name: `Paket utama: ${dto.name.trim()}`,
           description: 'Snapshot soal dibuat saat ujian disusun.',
           subjectId: dto.subjectId,
           createdById: actor.id,
