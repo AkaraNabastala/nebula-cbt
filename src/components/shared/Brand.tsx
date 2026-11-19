@@ -1,17 +1,15 @@
-export function Brand({ compact = false }: { compact?: boolean }) {
+export function Brand({ compact = false, logoDataUrl = "", institutionName = "" }: { compact?: boolean; logoDataUrl?: string; institutionName?: string }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#183B5B] text-xl font-bold text-white">
-        N
-      </div>
+    <div className="flex min-w-0 items-center gap-3">
+      {logoDataUrl ? (
+        <img src={logoDataUrl} alt={institutionName ? "Logo " + institutionName : "Logo lembaga"} className="size-11 shrink-0 rounded-xl border border-app-border bg-white object-contain p-1" />
+      ) : (
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#183B5B] text-xl font-bold text-white">N</div>
+      )}
       {!compact && (
         <div className="min-w-0">
-          <p className="text-[15px] font-bold leading-tight tracking-tight text-app-text">
-            Nebula CBT
-          </p>
-          <p className="mt-1 text-[11px] text-app-muted">
-            by AkaraNabastala
-          </p>
+          <p className="truncate text-[15px] font-bold leading-tight tracking-tight text-app-text">Nebula CBT</p>
+          <p className="mt-1 truncate text-[11px] text-app-muted">{institutionName || "by AkaraNabastala"}</p>
         </div>
       )}
     </div>
