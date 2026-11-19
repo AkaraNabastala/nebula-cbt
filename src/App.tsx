@@ -32,6 +32,8 @@ function App() {
         ? "/account"
         : role === "ADMIN" && pathname === "/admin/users"
           ? "/admin/users"
+          : role === "ADMIN" && pathname === "/admin/academic"
+            ? "/admin/academic"
           : dashboardPath || "/unsupported";
   }
 
@@ -90,9 +92,9 @@ function App() {
     <DashboardPage
       user={user}
       token={token}
-      page={pathname === "/account" ? "account" : pathname === "/admin/users" ? "users" : "dashboard"}
+      page={pathname === "/account" ? "account" : pathname === "/admin/users" ? "users" : pathname === "/admin/academic" ? "academic" : "dashboard"}
       setPage={(page) =>
-        navigate(page === "account" ? "/account" : page === "users" ? "/admin/users" : dashboardPath)
+        navigate(page === "account" ? "/account" : page === "users" ? "/admin/users" : page === "academic" ? "/admin/academic" : dashboardPath)
       }
       onLogout={logout}
       onChangePassword={() => navigate("/account")}
