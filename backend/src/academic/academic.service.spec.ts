@@ -18,6 +18,7 @@ describe('AcademicService education structure', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(prisma.systemSetting.findUnique).mockResolvedValue(null);
     vi.mocked(prisma.$transaction).mockImplementation(
       ((callback: (client: typeof tx) => Promise<unknown>) => callback(tx)) as never,
     );
@@ -39,6 +40,8 @@ describe('AcademicService education structure', () => {
   it('stores administrator-defined departments and writes an audit record', async () => {
     const value = {
       institutionType: 'Madrasah',
+      institutionName: '',
+      logoDataUrl: '',
       educationLevel: 'MA',
       departmentsEnabled: true,
       departments: ['IPA', 'IPS'],
