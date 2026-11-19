@@ -129,7 +129,7 @@ export class UsersService {
                 isPrimary: true,
               },
             },
-            userRoles: { create: { roleId: role.id } },
+            userRoles: { create: { role: { connect: { id: role.id } } } },
             ...(dto.roleCode === 'STUDENT' ? { studentProfile: { create: {} } } : {}),
             ...(dto.roleCode === 'TEACHER' ? { teacherProfile: { create: {} } } : {}),
           },
