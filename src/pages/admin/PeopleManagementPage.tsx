@@ -51,7 +51,8 @@ export function PeopleManagementPage({ token }: { token: string | null }) {
   async function submitEnrollment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!token) return;
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     setSaving(true);
     setError("");
     setNotice("");
@@ -61,7 +62,7 @@ export function PeopleManagementPage({ token }: { token: string | null }) {
         token,
         body: JSON.stringify({ studentProfileId: String(form.get("studentProfileId") || ""), classId: String(form.get("classId") || "") }),
       });
-      event.currentTarget.reset();
+      formElement.reset();
       setNotice("Siswa berhasil ditempatkan pada kelas.");
       await load();
     } catch (cause) {
