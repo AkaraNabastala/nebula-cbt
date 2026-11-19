@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main, feature/admin-user-management]
   push:
-    branches: [main, feature/workspace-ux-restructure]
+    branches: [main, feature/workspace-ux-restructure, feature/flexible-education-structure]
 
 permissions:
   contents: read
