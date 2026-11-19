@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { ChevronRight, Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { Brand } from "../../components/shared/Brand";
+import { toast } from "sonner";
 
 export function LoginPage({
   onLogin,
@@ -18,17 +19,15 @@ export function LoginPage({
   const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError("");
     setBusy(true);
 
     try {
       await onLogin(identifier.trim(), password, remember);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login tidak berhasil.");
+      toast.error(err instanceof Error ? err.message : "Login tidak berhasil.");
     } finally {
       setBusy(false);
     }
@@ -143,11 +142,7 @@ export function LoginPage({
               Ingat perangkat ini
             </label>
 
-            {error && (
-              <p role="alert" className="mt-5 rounded-lg border border-red-300 bg-red-50 p-3 text-sm leading-6 text-red-800">
-                {error}
-              </p>
-            )}
+
 
             <button
               type="submit"
