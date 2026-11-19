@@ -115,7 +115,7 @@ function App() {
           questions: role === "ADMIN" ? "/admin/questions" : "/guru/questions",
           dashboard: dashboardPath,
         } as const;
-        navigate(paths[nextPage]);
+        navigate(paths[nextPage] ?? dashboardPath ?? "/login");
       }}
       onLogout={logout}
       onChangePassword={() => navigate("/account")}
