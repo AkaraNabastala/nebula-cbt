@@ -1,4 +1,4 @@
-# Nebula CBT
+# NEBULA CBT by AkaraNabastala
 
 Nebula CBT adalah aplikasi *computer-based test* untuk administrator sekolah, guru, dan siswa. Repositori ini berisi frontend React/Vite dan API NestJS dengan PostgreSQL serta Prisma.
 
