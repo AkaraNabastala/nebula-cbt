@@ -234,7 +234,7 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
 
         <dialog ref={createDialogRef} onClose={() => setShowCreateDialog(false)} onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }} className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-3xl overflow-y-auto rounded-xl border border-app-border bg-app-surface p-0 text-app-text shadow-xl backdrop:bg-slate-950/45">
           <div className="flex justify-end px-4 pt-3"><button type="button" onClick={() => setShowCreateDialog(false)} aria-label="Tutup formulir ujian" className="inline-flex size-9 items-center justify-center rounded-md text-app-muted hover:bg-app-bg"><X size={18} /></button></div>
-          <form onSubmit={createExam} className="space-y-4 rounded-2xl border border-app-border bg-app-surface p-4 sm:p-5">
+          <form onSubmit={createExam} className="space-y-4 px-5 pb-5">
           <div><h2 className="text-sm font-semibold text-app-text">Buat draf ujian</h2><p className="mt-1 text-xs leading-5 text-app-muted">Saat draf dibuat, isi soal disalin menjadi snapshot. Penerbitan akan mengunci paket dan mendaftarkan siswa aktif.</p></div>
           <label className={labelClass}>Nama ujian<input name="name" required maxLength={150} placeholder="Penilaian Akhir Semester" className={inputClass} /></label>
           <label className={labelClass}>Jenis asesmen<select name="assessmentTypeId" required defaultValue="" className={inputClass}><option value="" disabled>Pilih jenis asesmen</option>{assessmentTypes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
