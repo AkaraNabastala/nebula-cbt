@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "./hooks/useAuth";
+import { apiRequest } from "./lib/api";
 import { LoadingScreen } from "./components/shared/Brand";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { ChangePasswordPage } from "./pages/auth/ChangePasswordPage";
@@ -18,6 +19,19 @@ function App() {
 
   const role = user ? getPrimaryRole(user.roles) : "";
   const dashboardPath = user ? getDashboardPath(role) : null;
+
+  useEffect(() => {
+    if (!token || role !== "ADMIN" || pathname === "/admin/education-settings") return;
+    let active = true;
+    void apiRequest<{ educationLevel?: string }>("/academic/education-settings", { token })
+      .then((settings) => {
+        if (active && (!settings.educationLevel || settings.educationLevel === "Belum ditentukan")) {
+          navigate("/admin/education-settings", true);
+        }
+      })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, [token, role, pathname]);
 
   let expectedPath = "/login";
 
