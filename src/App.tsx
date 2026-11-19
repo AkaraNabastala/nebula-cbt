@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useTheme } from "./hooks/useTheme";
 import { useAuth } from "./hooks/useAuth";
 import { LoadingScreen } from "./components/shared/Brand";
 import { LoginPage } from "./pages/auth/LoginPage";
@@ -13,8 +12,6 @@ import {
 import { DashboardPage } from "./pages/dashboard/DashboardPage";
 
 function App() {
-  useTheme();
-
   const pathname = usePathname();
   const [mustChangeNotice, setMustChangeNotice] = useState("");
   const { user, token, isLoading, login, logout, changePassword } = useAuth();
