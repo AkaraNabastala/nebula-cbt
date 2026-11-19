@@ -51,8 +51,8 @@ export function AcademicPage({ token }: { token: string | null }) {
     if (!token) return;
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
-    let endpoint = "";
-    let payload: Record<string, string | number> = {};
+    let endpoint: string;
+    let payload: Record<string, string | number>;
     if (tab === "years") {
       endpoint = "/academic/years";
       payload = { name: String(form.get("name") || ""), startDate: String(form.get("startDate") || ""), endDate: String(form.get("endDate") || "") };
