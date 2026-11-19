@@ -137,7 +137,6 @@ export function DashboardPage({
               <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-xs font-semibold text-app-muted hover:bg-app-bg hover:text-app-text"><span>Sistem</span><span aria-hidden="true" className="text-app-muted transition-transform group-open:rotate-90">›</span></summary>
               <div className="mt-1 space-y-1 pl-2">
                 <button type="button" onClick={() => setPage("educationSettings")} aria-current={page === "educationSettings" ? "page" : undefined} className={navClass(page === "educationSettings")}><Settings size={16} /> Struktur pendidikan</button>
-                <button type="button" onClick={() => setPage("educationSettings")} aria-current={page === "educationSettings" ? "page" : undefined} className={navClass(page === "educationSettings")}><Settings size={16} /> Struktur pendidikan</button>
                 <button type="button" onClick={() => setPage("audit")} aria-current={page === "audit" ? "page" : undefined} className={navClass(page === "audit")}><ShieldCheck size={16} /> Audit log</button>
               </div>
             </details>}
@@ -202,6 +201,7 @@ export function DashboardPage({
             {role === "ADMIN" && <details className="group rounded-lg">
               <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-sm font-semibold text-app-muted hover:bg-app-bg hover:text-app-text"><span>Sistem</span><span aria-hidden="true">›</span></summary>
               <div className="space-y-1 pl-3">
+                <button type="button" onClick={() => setPage("educationSettings")} aria-current={page === "educationSettings" ? "page" : undefined} className={navClass(page === "educationSettings")}><Settings size={16} /> Struktur pendidikan</button>
                 <button type="button" onClick={() => setPage("audit")} aria-current={page === "audit" ? "page" : undefined} className={navClass(page === "audit")}><ShieldCheck size={16} /> Audit log</button>
               </div>
             </details>}
