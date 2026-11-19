@@ -42,7 +42,9 @@ function App() {
                   ? "/guru/questions"
                   : role === "TEACHER" && pathname === "/guru/exams"
                     ? "/guru/exams"
-                    : dashboardPath || "/unsupported";
+                    : role === "STUDENT" && pathname === "/siswa/exams"
+                      ? "/siswa/exams"
+                      : dashboardPath || "/unsupported";
   }
 
   useEffect(() => {
