@@ -30,7 +30,7 @@ export class ExamOperationsService {
 
   async options(actor: Actor) {
     const teacherProfileId = this.isAdmin(actor) ? undefined : await this.teacherProfileId(actor);
-    const [assessmentTypes, academicYears, subjects, classes] = await Promise.all([
+    const [assessmentTypes, academicYears, subjects, classes, classAssignments] = await Promise.all([
       this.prisma.assessmentType.findMany({
         where: { isActive: true },
         orderBy: { name: 'asc' },
@@ -57,8 +57,14 @@ export class ExamOperationsService {
         orderBy: [{ gradeLevel: 'asc' }, { name: 'asc' }],
         select: { id: true, name: true, gradeLevel: true, academicYearId: true, academicYear: { select: { name: true, isActive: true } } },
       }),
+      teacherProfileId
+        ? this.prisma.teacherAssignment.findMany({
+            where: { teacherProfileId, isActive: true, class: { academicYear: { isActive: true } } },
+            select: { subjectId: true, classId: true },
+          })
+        : Promise.resolve([]),
     ]);
-    return { assessmentTypes, academicYears, subjects, classes };
+    return { assessmentTypes, academicYears, subjects, classes, classAssignments };
   }
 
   async list(actor: Actor) {
@@ -67,7 +73,7 @@ export class ExamOperationsService {
       where: this.isAdmin(actor) ? undefined : {
         subject: {
           teacherAssignments: {
-            some: { teacherProfileId, isActive: true },
+            some: { teacherProfileId, isActive: true, class: { academicYear: { isActive: true } } },
           },
         },
       },
@@ -152,6 +158,9 @@ export class ExamOperationsService {
     const maxScore = questions.reduce((total, question) => total + Number(question.defaultPoints), 0);
     const startDate = new Date(Date.UTC(startsAt.getUTCFullYear(), startsAt.getUTCMonth(), startsAt.getUTCDate()));
     const endDate = new Date(Date.UTC(endsAt.getUTCFullYear(), endsAt.getUTCMonth(), endsAt.getUTCDate()));
+    if (startDate < year.startDate || endDate > year.endDate) {
+      throw new BadRequestException('Jadwal ujian harus berada dalam rentang tahun ajaran yang dipilih.');
+    }
 
     return this.prisma.$transaction(async (tx) => {
       const event = await tx.assessmentEvent.create({
@@ -260,7 +269,7 @@ export class ExamOperationsService {
         const teacherProfileId = await this.teacherProfileId(actor);
         const classes = exam.schedules.flatMap((schedule) => schedule.scheduleClasses.map((item) => item.schoolClassId));
         const assignments = await tx.teacherAssignment.findMany({
-          where: { teacherProfileId, subjectId: exam.subjectId, classId: { in: classes }, isActive: true },
+          where: { teacherProfileId, subjectId: exam.subjectId, classId: { in: classes }, isActive: true, class: { academicYear: { isActive: true } } },
           select: { classId: true },
         });
         if (new Set(assignments.map((item) => item.classId)).size !== classes.length) {
