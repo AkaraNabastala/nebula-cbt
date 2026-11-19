@@ -21,12 +21,12 @@ function App() {
   const dashboardPath = user ? getDashboardPath(role) : null;
 
   useEffect(() => {
-    if (!token || role !== "ADMIN" || pathname === "/admin/education-settings") return;
+    if (!token || role !== "ADMIN" || pathname === "/setup") return;
     let active = true;
     void apiRequest<{ educationLevel?: string }>("/academic/education-settings", { token })
       .then((settings) => {
         if (active && (!settings.educationLevel || settings.educationLevel === "Belum ditentukan")) {
-          navigate("/admin/education-settings", true);
+          navigate("/setup", true);
         }
       })
       .catch(() => undefined);
@@ -53,7 +53,7 @@ function App() {
           "/admin/teacher-assignments",
           "/admin/people",
           "/admin/audit-logs",
-          "/admin/education-settings",
+          "/setup",
         ])
       : role === "TEACHER"
         ? new Set(["/account", "/guru/questions", "/guru/exams", "/guru/results"])
@@ -141,9 +141,11 @@ function App() {
                     ? "teacherAssignments"
                   : pathname === "/admin/audit-logs"
                     ? "audit"
-                    : pathname === "/admin/education-settings"
-                      ? "educationSettings"
-                    : "dashboard";
+                              : "dashboard";
+
+  if (pathname === "/setup" && role === "ADMIN") {
+    return <EducationSettingsPage token={token} onComplete={() => navigate(dashboardPath ?? "/admin/dashboard", true)} />;
+  }
 
   return (
     <DashboardPage
@@ -163,7 +165,6 @@ function App() {
           enrollments: "/admin/enrollments",
           teacherAssignments: "/admin/teacher-assignments",
           audit: "/admin/audit-logs",
-          educationSettings: "/admin/education-settings",
           dashboard: dashboardPath,
         } as const;
         navigate(paths[nextPage] ?? dashboardPath ?? "/login");
