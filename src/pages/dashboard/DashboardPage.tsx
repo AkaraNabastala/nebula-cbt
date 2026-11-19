@@ -81,7 +81,7 @@ export function DashboardPage({
 
   return (
     <div className="min-h-dvh bg-app-bg lg:flex">
-      <aside className="sticky top-0 hidden h-dvh w-[252px] shrink-0 flex-col overflow-y-auto border-r border-app-border bg-[#edf4fa] px-4 py-5 lg:flex dark:bg-app-surface lg:flex">
+      <aside className="sticky top-0 hidden h-dvh w-[252px] shrink-0 flex-col overflow-y-auto border-r-2 border-r-[#318BCB]/30 bg-app-surface px-4 py-5 lg:flex">
         <Brand />
         <div className="mt-10">
           <p className="mb-3 px-3 text-[10px] font-semibold tracking-[0.15em] text-app-muted">WORKSPACE</p>
