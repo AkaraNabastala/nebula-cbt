@@ -104,12 +104,14 @@ export function EducationSettingsPage({ token }: { token: string | null }) {
             </label>
             <label className="block text-sm font-medium text-app-text">Jenjang pendidikan
               <select value={settings.educationLevel} onChange={(event) => setSettings((current) => ({ ...current, educationLevel: event.target.value }))} className={inputClass}>
-                <option value="Belum ditentukan" disabled>Pilih jenjang pendidikan</option>\n                <option value="SD/MI">SD/MI</option>
+                <option value="Belum ditentukan" disabled>Pilih jenjang pendidikan</option>
+                <option value="SD/MI">SD/MI</option>
                 <option value="SMP/MTs">SMP/MTs</option>
                 <option value="SMA/MA">SMA/MA</option>
                 <option value="SMK">SMK</option>
                 <option value="Perguruan Tinggi">Perguruan Tinggi</option>
-                <option value="Pendidikan Kesetaraan">Pendidikan Kesetaraan</option>\n                <option value="Pascasarjana / Profesi">Pascasarjana / Profesi</option>
+                <option value="Pendidikan Kesetaraan">Pendidikan Kesetaraan</option>
+                <option value="Pascasarjana / Profesi">Pascasarjana / Profesi</option>
                 <option value="Lainnya">Lainnya</option>
               </select>
             </label>
