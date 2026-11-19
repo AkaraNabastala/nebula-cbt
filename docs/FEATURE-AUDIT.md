@@ -58,3 +58,15 @@ Tujuan: membedakan fitur yang sudah memiliki alur kode dari fitur yang belum len
 - CI ditambah pemeriksaan sintaks skrip reset password.
 
 **Catatan verifikasi:** status CI untuk perubahan pada branch ini harus dilihat pada workflow run terbaru setelah commit terakhir. Pengujian browser langsung belum dilakukan oleh CI.
+
+
+## Prioritas pengembangan setelah penataan UX
+
+1. **Fondasi administrasi:** lengkapi operasi edit/nonaktif/arsip untuk tahun ajaran, mata pelajaran, dan kelas dengan validasi relasi.
+2. **Siklus akun:** tambah edit profil, perubahan role yang diaudit, dan reset password pengguna oleh admin dengan kewajiban ganti password.
+3. **Bank soal:** tambah edit isi soal dengan versioning yang aman agar soal yang sudah dipakai snapshot ujian tidak berubah diam-diam.
+4. **Siklus ujian:** definisikan aturan perubahan jadwal, pembatalan, dan koreksi setelah ujian diterbitkan tanpa merusak snapshot.
+5. **Pelaporan:** tentukan kebutuhan laporan, filter, dan ekspor bersama format sekolah sebelum menambahkan tombol yang belum punya proses backend.
+6. **Hak akses:** buat layar matriks role-permission hanya setelah kebijakan tiap role disepakati, lalu uji akses di backend dan UI.
+
+Urutan ini sengaja menempatkan integritas data dan aturan bisnis sebelum menambah banyak kontrol visual.
