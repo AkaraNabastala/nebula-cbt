@@ -64,16 +64,16 @@ const client = await pool.connect();
 try {
   await client.query("BEGIN");
   await client.query("SELECT pg_advisory_xact_lock(492167730113)");
-  const result = await client.query(
-    \`SELECT u.id, u.full_name
-     FROM users u
-     JOIN user_identifiers i ON i.user_id = u.id
-     JOIN user_roles ur ON ur.user_id = u.id
-     JOIN roles r ON r.id = ur.role_id
-     WHERE i.normalized_value = $1 AND r.code = 'ADMIN'
-     FOR UPDATE OF u\`,
-    [email],
-  );
+  const result = await client.query([
+    "SELECT u.id, u.full_name",
+    "FROM users u",
+    "JOIN user_identifiers i ON i.user_id = u.id",
+    "JOIN user_roles ur ON ur.user_id = u.id",
+    "JOIN roles r ON r.id = ur.role_id",
+    "WHERE i.normalized_value = $1 AND r.code = 'ADMIN'",
+    "FOR UPDATE OF u",
+  ].join(" "), [email]);
+
   if (result.rowCount !== 1) {
     throw new Error(result.rowCount === 0
       ? "Akun ADMIN dengan email tersebut tidak ditemukan."
@@ -81,7 +81,7 @@ try {
   }
 
   const admin = result.rows[0];
-  console.log(`Target reset: ${admin.full_name} <${email}>`);
+  console.log("Target reset: " + admin.full_name + " <" + email + ">");
   const terminal = createInterface({ input: stdin, output: stdout });
   const confirmationText = await terminal.question("Ketik RESET untuk melanjutkan: ");
   terminal.close();
@@ -95,23 +95,18 @@ try {
   });
 
   await client.query(
-    \`UPDATE users
-     SET password_hash = $1,
-         must_change_password = true,
-         token_version = token_version + 1,
-         updated_at = NOW()
-     WHERE id = $2\`,
+    "UPDATE users SET password_hash = $1, must_change_password = true, " +
+    "token_version = token_version + 1, updated_at = NOW() WHERE id = $2",
     [passwordHash, admin.id],
   );
   await client.query(
-    \`INSERT INTO audit_logs
-       (id, actor_user_id, action, entity_type, entity_id, description, created_at)
-     VALUES ($1, NULL, 'AUTH_ADMIN_PASSWORD_RESET', 'USER', $2,
-       'Password administrator direset melalui skrip pemulihan lokal; sesi lama dicabut.', NOW())\`,
+    "INSERT INTO audit_logs (id, actor_user_id, action, entity_type, entity_id, description, created_at) " +
+    "VALUES ($1, NULL, 'AUTH_ADMIN_PASSWORD_RESET', 'USER', $2, " +
+    "'Password administrator direset melalui skrip pemulihan lokal; sesi lama dicabut.', NOW())",
     [randomUUID(), admin.id],
   );
   await client.query("COMMIT");
-  console.log(\`Password akun ADMIN \${admin.full_name} berhasil direset.\`);
+  console.log("Password akun ADMIN " + admin.full_name + " berhasil direset.");
   console.log("Login berikutnya wajib mengganti password.");
 } catch (error) {
   await client.query("ROLLBACK");
