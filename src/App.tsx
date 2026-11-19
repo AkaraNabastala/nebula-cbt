@@ -24,32 +24,29 @@ function App() {
   if (user?.mustChangePassword) {
     expectedPath = "/change-password";
   } else if (user) {
-    expectedPath =
-      pathname === "/account"
-        ? "/account"
-        : role === "ADMIN" && pathname === "/admin/users"
-          ? "/admin/users"
-          : role === "ADMIN" && pathname === "/admin/academic"
-            ? "/admin/academic"
-            : role === "ADMIN" && pathname === "/admin/questions"
-              ? "/admin/questions"
-              : role === "ADMIN" && pathname === "/admin/exams"
-                ? "/admin/exams"
-                : role === "TEACHER" && pathname === "/guru/questions"
-                  ? "/guru/questions"
-                  : role === "TEACHER" && pathname === "/guru/exams"
-                    ? "/guru/exams"
-                    : role === "STUDENT" && pathname === "/siswa/exams"
-                      ? "/siswa/exams"
-                      : role === "ADMIN" && pathname === "/admin/results"
-                        ? "/admin/results"
-                        : role === "TEACHER" && pathname === "/guru/results"
-                          ? "/guru/results"
-                          : role === "ADMIN" && pathname === "/admin/people"
-                            ? "/admin/people"
-                            : role === "ADMIN" && pathname === "/admin/audit-logs"
-                              ? "/admin/audit-logs"
-                              : dashboardPath || "/unsupported";
+    const allowedPaths = role === "ADMIN"
+      ? new Set([
+          "/account",
+          "/admin/users",
+          "/admin/academic/years",
+          "/admin/academic/subjects",
+          "/admin/academic/classes",
+          "/admin/academic",
+          "/admin/questions",
+          "/admin/exams",
+          "/admin/results",
+          "/admin/people",
+          "/admin/audit-logs",
+        ])
+      : role === "TEACHER"
+        ? new Set(["/account", "/guru/questions", "/guru/exams", "/guru/results"])
+        : new Set(["/account", "/siswa/exams"]);
+
+    if (role === "ADMIN" && pathname === "/admin/academic") {
+      expectedPath = "/admin/academic/years";
+    } else {
+      expectedPath = allowedPaths.has(pathname) ? pathname : dashboardPath || "/unsupported";
+    }
   }
 
   useEffect(() => {
