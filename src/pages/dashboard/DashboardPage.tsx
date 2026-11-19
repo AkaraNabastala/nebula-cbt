@@ -167,28 +167,26 @@ export function DashboardPage({
           <div className="hidden text-xs text-app-muted lg:block">Workspace <span className="mx-2">/</span><span className="font-medium text-app-text">{pageLabels[page]}</span></div>
           <div className="ml-auto flex min-w-0 items-center gap-3">
             <div className="hidden min-w-0 text-right sm:block"><p className="max-w-52 truncate text-xs font-semibold text-app-text">{user.fullName}</p><p className="mt-1 text-[11px] text-app-muted">{detail.label}</p></div>
-            <button type="button" onClick={() => void onLogout()} className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-app-border px-3 text-xs font-semibold text-app-text hover:bg-app-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary">
+            <button type="button" onClick={() => void onLogout()} aria-label="Logout" className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-app-border px-3 text-xs font-semibold text-app-text hover:bg-app-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary">
               <LogOut size={15} /><span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </header>
 
-        {mobileOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden">
-            <button type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)} className="absolute inset-0 cursor-default bg-slate-950/45 backdrop-blur-[2px]" />
-            <aside id="mobile-workspace-navigation" className="absolute inset-y-0 left-0 flex w-[min(86vw,320px)] flex-col border-r border-app-border bg-app-surface px-4 py-5 shadow-2xl transition-transform duration-200">
-              <div className="mb-8 flex items-center justify-between gap-3">
-                <Brand institutionName={institution.institutionName} logoDataUrl={institution.logoDataUrl} />
-                <button type="button" onClick={() => setMobileOpen(false)} aria-label="Close navigation" className="inline-flex size-10 items-center justify-center rounded-lg text-app-muted hover:bg-app-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"><X size={20} /></button>
-              </div>
-              <div className="min-h-0 flex-1 overflow-y-auto">{navigation}</div>
-              <div className="mt-4 border-t border-app-border px-3 pt-4">
-                <p className="truncate text-sm font-semibold text-app-text">{user.fullName}</p>
-                <p className="mt-1 text-xs text-app-muted">{detail.label}</p>
-              </div>
-            </aside>
-          </div>
-        )}
+        <div className={`pointer-events-none fixed inset-0 z-50 lg:hidden ${mobileOpen ? "pointer-events-auto" : ""}`} aria-hidden={!mobileOpen}>
+          <button type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)} tabIndex={mobileOpen ? 0 : -1} className={`absolute inset-0 cursor-default bg-slate-950/45 backdrop-blur-[2px] transition-opacity duration-200 ${mobileOpen ? "opacity-100" : "opacity-0"}`} />
+          <aside id="mobile-workspace-navigation" inert={!mobileOpen} className={`absolute inset-y-0 left-0 flex w-[min(86vw,320px)] flex-col border-r border-app-border bg-app-surface px-4 py-5 shadow-2xl transition-transform duration-200 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
+            <div className="mb-8 flex items-center justify-between gap-3">
+              <Brand institutionName={institution.institutionName} logoDataUrl={institution.logoDataUrl} />
+              <button type="button" onClick={() => setMobileOpen(false)} aria-label="Close navigation" className="inline-flex size-10 items-center justify-center rounded-lg text-app-muted hover:bg-app-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"><X size={20} /></button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto">{navigation}</div>
+            <div className="mt-4 border-t border-app-border px-3 pt-4">
+              <p className="truncate text-sm font-semibold text-app-text">{user.fullName}</p>
+              <p className="mt-1 text-xs text-app-muted">{detail.label}</p>
+            </div>
+          </aside>
+        </div>
 
         <main className="mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-7 sm:py-7">
           {page === "account" ? <AccountPage user={user} onChangePassword={onChangePassword} />
