@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import {
   LayoutDashboard,
   LogOut,
@@ -141,18 +142,24 @@ export function DashboardPage({
           </div>
         </header>
 
-        <nav aria-label="Navigasi ringkas" className="flex flex-wrap gap-1.5 border-b border-app-border bg-app-surface px-4 py-2 lg:hidden">
-          <button type="button" onClick={() => setPage("dashboard")} aria-current={page === "dashboard" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "dashboard" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Ringkasan</button>
-          {(role === "ADMIN" || role === "TEACHER") && <button type="button" onClick={() => setPage("questions")} aria-current={page === "questions" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "questions" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Bank soal</button>}
-          {(role === "ADMIN" || role === "TEACHER") && <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "exams" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Ujian</button>}
-          {role === "ADMIN" && <button type="button" onClick={() => setPage("academic")} aria-current={page === "academic" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "academic" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Akademik</button>}
-          {role === "ADMIN" && <button type="button" onClick={() => setPage("users")} aria-current={page === "users" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "users" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Pengguna</button>}
-          {(role === "ADMIN" || role === "TEACHER") && <button type="button" onClick={() => setPage("results")} aria-current={page === "results" ? "page" : undefined} className="min-h-11 rounded-lg px-3 text-xs font-medium text-app-muted">Hasil</button>}
-          {role === "ADMIN" && <button type="button" onClick={() => setPage("people")} aria-current={page === "people" ? "page" : undefined} className="min-h-11 rounded-lg px-3 text-xs font-medium text-app-muted">Siswa dan penugasan</button>}
-          {role === "ADMIN" && <button type="button" onClick={() => setPage("audit")} aria-current={page === "audit" ? "page" : undefined} className="min-h-11 rounded-lg px-3 text-xs font-medium text-app-muted">Audit log</button>}
-          {role === "STUDENT" && <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className="min-h-11 rounded-lg px-3 text-xs font-medium text-app-muted">Ujian saya</button>}
-          <button type="button" onClick={() => setPage("account")} aria-current={page === "account" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "account" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Akun saya</button>
-        </nav>
+        <details className="border-b border-app-border bg-app-surface lg:hidden">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-5 text-xs font-semibold text-app-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-app-primary">
+            <span>Menu workspace</span>
+            <span className="font-normal text-app-muted">{page === "dashboard" ? "Ringkasan" : page === "users" ? "Pengguna" : page === "academic" ? "Akademik" : page === "questions" ? "Bank soal" : page === "exams" ? (role === "STUDENT" ? "Ujian saya" : "Operasional ujian") : page === "results" ? "Penilaian dan hasil" : page === "people" ? "Siswa dan penugasan" : page === "audit" ? "Audit log" : "Akun saya"}</span>
+          </summary>
+          <nav aria-label="Navigasi utama seluler" className="grid grid-cols-2 gap-2 px-4 pb-3 sm:grid-cols-3">
+            <button type="button" onClick={() => setPage("dashboard")} aria-current={page === "dashboard" ? "page" : undefined} className={navClass(page === "dashboard")}>Ringkasan</button>
+            {(role === "ADMIN" || role === "TEACHER") && <button type="button" onClick={() => setPage("questions")} aria-current={page === "questions" ? "page" : undefined} className={navClass(page === "questions")}>Bank soal</button>}
+            {(role === "ADMIN" || role === "TEACHER") && <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={navClass(page === "exams")}>Operasional ujian</button>}
+            {role === "ADMIN" && <button type="button" onClick={() => setPage("academic")} aria-current={page === "academic" ? "page" : undefined} className={navClass(page === "academic")}>Akademik dan kelas</button>}
+            {role === "ADMIN" && <button type="button" onClick={() => setPage("users")} aria-current={page === "users" ? "page" : undefined} className={navClass(page === "users")}>Pengguna dan hak akses</button>}
+            {(role === "ADMIN" || role === "TEACHER") && <button type="button" onClick={() => setPage("results")} aria-current={page === "results" ? "page" : undefined} className={navClass(page === "results")}>Penilaian dan hasil</button>}
+            {role === "ADMIN" && <button type="button" onClick={() => setPage("people")} aria-current={page === "people" ? "page" : undefined} className={navClass(page === "people")}>Siswa dan penugasan</button>}
+            {role === "ADMIN" && <button type="button" onClick={() => setPage("audit")} aria-current={page === "audit" ? "page" : undefined} className={navClass(page === "audit")}>Audit log</button>}
+            {role === "STUDENT" && <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={navClass(page === "exams")}>Ujian saya</button>}
+            <button type="button" onClick={() => setPage("account")} aria-current={page === "account" ? "page" : undefined} className={navClass(page === "account")}>Akun saya</button>
+          </nav>
+        </details>
 
         <main className="mx-auto w-full max-w-[1440px] px-5 py-8 sm:px-8 sm:py-10">
           {page === "account" ? <AccountPage user={user} onChangePassword={onChangePassword} />
