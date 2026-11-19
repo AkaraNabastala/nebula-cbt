@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useRef, type FormEvent } from "react";
 import { Plus, X } from "lucide-react";
 import { apiRequest } from "../../lib/api";
+import { toast } from "sonner";
 
 type AssessmentType = { id: string; code: string; name: string };
 type AcademicYear = { id: string; name: string; isActive: boolean };
@@ -52,7 +53,6 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const createDialogRef = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const load = useCallback(async () => {
     if (!token) {
@@ -138,7 +138,6 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
     }
     setSaving(true);
     setError("");
-    setNotice("");
     try {
       const result = await apiRequest<{ name: string }>("/exam-operations", {
         method: "POST",
@@ -160,7 +159,7 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
         }),
       });
       setShowCreateDialog(false);
-      setNotice(`Draf ujian "${result.name}" berhasil dibuat. Periksa jadwal dan peserta sebelum menerbitkan.`);
+      toast.success(`Draf ujian "${result.name}" berhasil dibuat. Periksa jadwal dan peserta sebelum menerbitkan.`);
       formElement.reset();
       setSelectedQuestionIds([]);
       await load();
@@ -175,10 +174,9 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
     if (!token) return;
     setPublishingId(exam.id);
     setError("");
-    setNotice("");
     try {
       const result = await apiRequest<{ participantCount: number }>(`/exam-operations/${exam.id}/publish`, { method: "PATCH", token });
-      setNotice(`Ujian diterbitkan. ${result.participantCount} peserta terdaftar dari kelas yang dipilih.`);
+      toast.success(`Ujian diterbitkan. ${result.participantCount} peserta terdaftar dari kelas yang dipilih.`);
       await load();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Ujian gagal diterbitkan.");
@@ -198,7 +196,6 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
         <div><h1 className="text-xl font-semibold tracking-tight text-app-text">Operasional ujian</h1><p className="mt-1 max-w-2xl text-sm text-app-muted">Susun paket, tentukan peserta dan jadwal, lalu terbitkan ujian.</p></div>
         <button type="button" onClick={() => { setError(""); setShowCreateDialog(true); }} disabled={!subjects.length || !assessmentTypes.length || !years.length} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-app-primary px-4 text-sm font-semibold text-app-primary-contrast hover:bg-app-primary-hover disabled:opacity-50"><Plus size={16} /> Buat draf ujian</button>
       </header>
-      {notice && <div role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-app-text">{notice}</div>}
       {error && <div role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-app-text">{error}</div>}
 
       <div className="grid items-start gap-4">
