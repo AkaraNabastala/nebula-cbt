@@ -155,7 +155,14 @@ export function StudentExamsPage({ token }: { token: string | null }) {
   useEffect(() => {
     if (!attempt?.id) return;
     const interval = window.setInterval(() => { void flushRef.current(); }, 10000);
-    const onOnline = () => { setOnline(true); void flushRef.current(); };
+    const onOnline = () => {
+      setOnline(true);
+      if (Date.now() >= Date.parse(attempt.deadlineAt)) {
+        void submitRef.current(true);
+      } else {
+        void flushRef.current();
+      }
+    };
     const onOffline = () => setOnline(false);
     window.addEventListener("online", onOnline);
     window.addEventListener("offline", onOffline);
@@ -164,7 +171,7 @@ export function StudentExamsPage({ token }: { token: string | null }) {
       window.removeEventListener("online", onOnline);
       window.removeEventListener("offline", onOffline);
     };
-  }, [attempt?.id]);
+  }, [attempt?.id, attempt?.deadlineAt]);
 
   useEffect(() => {
     if (!attempt?.id) return;
