@@ -230,7 +230,7 @@ export function StudentExamsPage({ token }: { token: string | null }) {
     setPendingAnswers((current) => ({ ...current, [questionId]: next }));
   }
 
-  async function submitAttempt() {
+  const submitAttempt = useCallback(async () => {
     if (!attempt || !token || !sessionToken || submitting) return;
     setSubmitting(true);
     setError("");
@@ -259,7 +259,7 @@ export function StudentExamsPage({ token }: { token: string | null }) {
     } finally {
       setSubmitting(false);
     }
-  }
+  }, [attempt, token, sessionToken, submitting, flush, pendingAnswers, loadExams]);
 
   useEffect(() => { submitRef.current = submitAttempt; }, [submitAttempt]);
 
