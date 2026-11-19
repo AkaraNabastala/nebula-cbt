@@ -297,7 +297,7 @@ export function QuestionsPage({ token }: { token: string | null }) {
         </dialog>
         <dialog ref={questionDialogRef} onClose={() => setShowQuestionDialog(false)} onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }} className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto rounded-xl border border-app-border bg-app-surface p-0 text-app-text shadow-xl backdrop:bg-slate-950/45">
           <div className="flex justify-end px-4 pt-3"><button type="button" onClick={() => setShowQuestionDialog(false)} aria-label="Tutup formulir soal" className="inline-flex size-9 items-center justify-center rounded-md text-app-muted hover:bg-app-bg"><X size={18} /></button></div>
-          <form onSubmit={createQuestion} className="space-y-3 rounded-2xl border border-app-border bg-app-surface p-4 sm:p-5">
+          <form onSubmit={createQuestion} className="space-y-3 px-5 pb-5">
             <div>
               <h2 className="text-sm font-semibold text-app-text">Tambah soal</h2>
               <p className="mt-1 text-xs leading-5 text-app-muted">Soal baru tersimpan sebagai draf dan belum masuk ke paket ujian.</p>
