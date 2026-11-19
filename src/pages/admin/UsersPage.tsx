@@ -1,41 +1,21 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { LockKeyhole, Plus, RefreshCw, Search, UserRound, Users } from "lucide-react";
+import { LockKeyhole, Plus, RefreshCw, Search, UserRound, Users, X } from "lucide-react";
 import { apiRequest } from "../../lib/api";
 
 type UserStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED";
 type UserRole = { code: string; name: string };
-type UserIdentifier = {
-  identifierType: string;
-  identifierValue: string;
-  isPrimary: boolean;
-};
+type UserIdentifier = { identifierType: string; identifierValue: string; isPrimary: boolean };
 type UserRecord = {
-  id: string;
-  fullName: string;
-  status: UserStatus;
-  mustChangePassword: boolean;
-  lastLoginAt: string | null;
-  createdAt: string;
-  identifiers: UserIdentifier[];
-  roles: UserRole[];
+  id: string; fullName: string; status: UserStatus; mustChangePassword: boolean;
+  lastLoginAt: string | null; createdAt: string; identifiers: UserIdentifier[]; roles: UserRole[];
 };
-type UsersResponse = {
-  data: UserRecord[];
-  pagination: { page: number; limit: number; total: number; totalPages: number };
-};
+type UsersResponse = { data: UserRecord[]; pagination: { page: number; limit: number; total: number; totalPages: number } };
 
-const statusLabels: Record<UserStatus, string> = {
-  ACTIVE: "Aktif",
-  INACTIVE: "Nonaktif",
-  SUSPENDED: "Ditangguhkan",
-};
+const statusLabels: Record<UserStatus, string> = { ACTIVE: "Aktif", INACTIVE: "Nonaktif", SUSPENDED: "Ditangguhkan" };
 
 function formatDate(value: string | null) {
   if (!value) return "Belum pernah";
-  return new Intl.DateTimeFormat("id-ID", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
+  return new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
 export function UsersPage({ token }: { token: string | null }) {
@@ -59,13 +39,11 @@ export function UsersPage({ token }: { token: string | null }) {
       setIsLoading(false);
       return;
     }
-
     setIsLoading(true);
     setError("");
     const params = new URLSearchParams({ page: String(page), limit: "20" });
     if (search) params.set("search", search);
     if (statusFilter) params.set("status", statusFilter);
-
     try {
       const result = await apiRequest<UsersResponse>(`/users?${params.toString()}`, { token });
       setUsers(result.data);
@@ -78,14 +56,20 @@ export function UsersPage({ token }: { token: string | null }) {
     }
   }, [token, page, search, statusFilter]);
 
+  useEffect(() => { void Promise.resolve().then(loadUsers); }, [loadUsers]);
+
   useEffect(() => {
-    void Promise.resolve().then(loadUsers);
-  }, [loadUsers]);
+    if (!isCreating) return;
+    function closeOnEscape(event: globalThis.KeyboardEvent) {
+      if (event.key === "Escape") setIsCreating(false);
+    }
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [isCreating]);
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!token) return;
-
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
     const payload = {
@@ -95,16 +79,11 @@ export function UsersPage({ token }: { token: string | null }) {
       password: String(form.get("password") || ""),
       roleCode: String(form.get("roleCode") || "STUDENT"),
     };
-
     setCreating(true);
     setError("");
     setNotice("");
     try {
-      await apiRequest<UserRecord>("/users", {
-        method: "POST",
-        token,
-        body: JSON.stringify(payload),
-      });
+      await apiRequest<UserRecord>("/users", { method: "POST", token, body: JSON.stringify(payload) });
       formElement.reset();
       setIsCreating(false);
       setPage(1);
@@ -130,20 +109,12 @@ export function UsersPage({ token }: { token: string | null }) {
   async function handleStatusChange(user: UserRecord) {
     if (!token) return;
     const nextStatus: UserStatus = user.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-    const confirmed = window.confirm(
-      `${nextStatus === "ACTIVE" ? "Aktifkan" : "Nonaktifkan"} akun ${user.fullName}?`,
-    );
-    if (!confirmed) return;
-
+    if (!window.confirm(`${nextStatus === "ACTIVE" ? "Aktifkan" : "Nonaktifkan"} akun ${user.fullName}?`)) return;
     setChangingId(user.id);
     setError("");
     setNotice("");
     try {
-      await apiRequest(`/users/${user.id}/status`, {
-        method: "PATCH",
-        token,
-        body: JSON.stringify({ status: nextStatus }),
-      });
+      await apiRequest(`/users/${user.id}/status`, { method: "PATCH", token, body: JSON.stringify({ status: nextStatus }) });
       setNotice(`Status akun ${user.fullName} sekarang ${statusLabels[nextStatus].toLowerCase()}.`);
       await loadUsers();
     } catch (cause) {
@@ -160,177 +131,57 @@ export function UsersPage({ token }: { token: string | null }) {
   }
 
   return (
-    <div className="space-y-7">
-      <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <section className="space-y-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-semibold tracking-widest text-app-primary">ADMINISTRASI</p>
-          <h1 className="mt-2 text-2xl font-bold text-app-text">Pengguna dan Hak Akses</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-app-muted">
-            Buat akun, telusuri pengguna, dan kelola status akses administrator, guru, serta siswa.
-          </p>
+          <h1 className="text-xl font-semibold tracking-tight text-app-text">Pengguna</h1>
+          <p className="mt-1 text-sm text-app-muted">Kelola akun administrator, guru, dan siswa.</p>
         </div>
-        <button
-          type="button"
-          onClick={() => { setIsCreating((value) => !value); setError(""); }}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-app-primary px-4 py-2 text-sm font-semibold text-app-primary-contrast transition-colors hover:bg-app-primary-hover active:scale-[0.99]"
-          aria-expanded={isCreating}
-        >
-          <Plus size={17} aria-hidden="true" />
-          {isCreating ? "Tutup formulir" : "Tambah pengguna"}
+        <button type="button" onClick={() => { setError(""); setIsCreating(true); }} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-app-primary px-4 text-sm font-semibold text-app-primary-contrast hover:bg-app-primary-hover">
+          <Plus size={16} aria-hidden="true" /> Tambah pengguna
         </button>
-      </section>
+      </div>
 
-      {notice && (
-        <p role="status" className="rounded-xl border border-emerald-700/30 bg-emerald-500/10 px-4 py-3 text-sm text-app-text">
-          {notice}
-        </p>
-      )}
-      {error && (
-        <div role="alert" className="rounded-xl border border-red-700/40 bg-red-500/10 px-4 py-3 text-sm text-app-text">
-          <p>{error}</p>
-          <button type="button" onClick={() => void loadUsers()} className="mt-2 min-h-11 font-semibold underline underline-offset-4">
-            Coba muat ulang
-          </button>
-        </div>
-      )}
+      {notice && <p role="status" className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-app-text">{notice}</p>}
+      {error && <div role="alert" className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm text-app-text"><span>{error}</span><button type="button" onClick={() => void loadUsers()} className="font-semibold underline underline-offset-2">Muat ulang</button></div>}
 
-      {isCreating && (
-        <section className="rounded-2xl border border-app-border bg-app-surface p-5 sm:p-6">
-          <div className="mb-5 flex items-start gap-3">
-            <span className="rounded-xl bg-app-soft p-2.5 text-app-primary"><UserRound size={19} /></span>
-            <div>
-              <h2 className="text-base font-semibold text-app-text">Buat akun pengguna</h2>
-              <p className="mt-1 text-sm text-app-muted">Password awal hanya untuk login pertama. Pengguna diwajibkan menggantinya.</p>
-            </div>
-          </div>
-          <form onSubmit={handleCreate} className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <label htmlFor="user-full-name" className="mb-1.5 block text-sm font-medium text-app-text">Nama lengkap</label>
-              <input id="user-full-name" name="fullName" required minLength={2} maxLength={150} autoComplete="name"
-                className="min-h-11 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" />
-            </div>
-            <div>
-              <label htmlFor="user-identifier-type" className="mb-1.5 block text-sm font-medium text-app-text">Jenis identitas login</label>
-              <select id="user-identifier-type" name="identifierType" className="min-h-11 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text">
-                <option value="USERNAME">Username</option>
-                <option value="EMAIL">Email</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="user-identifier" className="mb-1.5 block text-sm font-medium text-app-text">Username atau email</label>
-              <input id="user-identifier" name="identifier" required minLength={3} maxLength={191}
-                autoComplete="username" className="min-h-11 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" />
-            </div>
-            <div>
-              <label htmlFor="user-initial-password" className="mb-1.5 block text-sm font-medium text-app-text">Password awal</label>
-              <input id="user-initial-password" name="password" type="password" required minLength={12} maxLength={128}
-                autoComplete="new-password" className="min-h-11 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" />
-              <p className="mt-1 text-xs text-app-muted">Minimal 12 karakter.</p>
-            </div>
-            <div>
-              <label htmlFor="user-role" className="mb-1.5 block text-sm font-medium text-app-text">Role</label>
-              <select id="user-role" name="roleCode" className="min-h-11 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text">
-                <option value="STUDENT">Siswa</option>
-                <option value="TEACHER">Guru</option>
-                <option value="ADMIN">Administrator</option>
-              </select>
-            </div>
-            <div className="flex flex-wrap items-center gap-3 pt-2 sm:col-span-2">
-              <button type="submit" disabled={creating} className="min-h-11 rounded-xl bg-app-primary px-5 py-2 text-sm font-semibold text-white hover:bg-app-primary-hover disabled:opacity-60">
-                {creating ? "Menyimpan..." : "Simpan akun"}
-              </button>
-              <button type="button" onClick={() => setIsCreating(false)} className="min-h-11 rounded-xl border border-app-border px-4 py-2 text-sm font-medium text-app-text hover:bg-app-bg">
-                Batal
-              </button>
-            </div>
-          </form>
-        </section>
-      )}
-
-      <section className="rounded-2xl border border-app-border bg-app-surface p-4 sm:p-5">
-        <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-app-text">
-              <Users size={18} aria-hidden="true" />
-              <h2 className="text-base font-semibold">Daftar pengguna</h2>
-            </div>
-            <p className="mt-1 text-sm text-app-muted">{total} akun tercatat</p>
-          </div>
+      <section className="overflow-hidden rounded-xl border border-app-border bg-app-surface">
+        <div className="flex flex-col gap-3 border-b border-app-border px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+          <div><div className="flex items-center gap-2 text-app-text"><Users size={17} aria-hidden="true" /><h2 className="text-sm font-semibold">Daftar pengguna</h2></div><p className="mt-1 text-xs text-app-muted">{total} akun tercatat</p></div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <form onSubmit={handleSearch} className="flex min-w-0 gap-2">
-              <div className="min-w-0 flex-1">
-                <label htmlFor="users-search" className="mb-1 block text-xs font-medium text-app-text">Cari pengguna</label>
-                <div className="flex min-w-0 items-center gap-2 rounded-lg border border-app-border bg-app-input px-3">
-                  <Search size={16} className="shrink-0 text-app-muted" aria-hidden="true" />
-                  <input id="users-search" value={searchInput} onChange={(event) => setSearchInput(event.target.value)}
-                    placeholder="Nama atau identitas" className="min-h-11 min-w-0 w-full bg-transparent text-sm text-app-text outline-none" />
-                </div>
-              </div>
-              <button type="submit" className="min-h-11 rounded-lg border border-app-border px-3 text-sm font-medium text-app-text hover:bg-app-bg">Cari</button>
+              <label htmlFor="users-search" className="sr-only">Cari nama atau identitas</label>
+              <div className="flex min-w-0 items-center gap-2 rounded-lg border border-app-border bg-app-input px-3"><Search size={15} className="shrink-0 text-app-muted" aria-hidden="true" /><input id="users-search" value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Nama, NIPD, NIS, atau email" className="min-h-10 min-w-0 w-full bg-transparent text-sm text-app-text outline-none" /></div>
+              <button type="submit" className="min-h-10 rounded-lg border border-app-border px-3 text-xs font-medium text-app-text hover:bg-app-bg">Cari</button>
             </form>
-            <label className="flex min-h-11 items-center gap-2 rounded-lg border border-app-border px-3 text-sm text-app-muted">
-              <span>Status</span>
-              <select value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setPage(1); }}
-                className="min-w-0 bg-transparent text-sm text-app-text">
-                <option value="">Semua</option>
-                <option value="ACTIVE">Aktif</option>
-                <option value="INACTIVE">Nonaktif</option>
-                <option value="SUSPENDED">Ditangguhkan</option>
-              </select>
-            </label>
+            <label className="flex min-h-10 items-center gap-2 rounded-lg border border-app-border px-3 text-xs text-app-muted"><span>Status</span><select value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setPage(1); }} className="min-w-0 bg-transparent text-sm text-app-text"><option value="">Semua</option><option value="ACTIVE">Aktif</option><option value="INACTIVE">Nonaktif</option><option value="SUSPENDED">Ditangguhkan</option></select></label>
+            <button type="button" onClick={() => void loadUsers()} disabled={isLoading} aria-label="Muat ulang daftar pengguna" className="inline-flex min-h-10 items-center justify-center rounded-lg border border-app-border px-3 text-app-muted hover:bg-app-bg disabled:opacity-50"><RefreshCw size={15} className={isLoading ? "animate-spin" : ""} /></button>
           </div>
         </div>
 
-        {isLoading ? (
-          <div role="status" className="flex min-h-36 items-center justify-center gap-3 text-sm text-app-muted">
-            <RefreshCw size={17} className="animate-spin" aria-hidden="true" /> Memuat daftar pengguna...
-          </div>
-        ) : error && users.length === 0 ? (
-          <div className="flex min-h-36 items-center justify-center text-center text-sm text-app-muted">
-            Data belum dapat ditampilkan. Gunakan tombol muat ulang untuk mencoba kembali.
-          </div>
-        ) : users.length === 0 ? (
-          <div className="flex min-h-36 flex-col items-center justify-center text-center">
-            <LockKeyhole size={22} className="text-app-muted" aria-hidden="true" />
-            <p className="mt-3 text-sm font-semibold text-app-text">Belum ada pengguna yang cocok</p>
-            <p className="mt-1 text-sm text-app-muted">Ubah kata pencarian atau filter, atau buat akun baru.</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-app-border">
-            {users.map((user) => (
-              <article key={user.id} className="flex flex-col gap-3 py-4 first:pt-1 last:pb-1 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <h3 className="break-words text-sm font-semibold text-app-text">{user.fullName}</h3>
-                  <p className="mt-1 break-all text-xs text-app-muted">
-                    {user.identifiers.map((item) => item.identifierValue).join(" · ") || "Identitas belum tersedia"}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-2 text-xs text-app-muted">
-                    {user.roles.map((role) => <span key={role.code} className="rounded-md bg-app-soft px-2 py-1">{role.name}</span>)}
-                    <span className="rounded-md border border-app-border px-2 py-1">{statusLabels[user.status]}</span>
-                    {user.mustChangePassword && <span className="rounded-md border border-app-border px-2 py-1">Wajib ganti password</span>}
-                  </div>
-                  <p className="mt-2 text-xs text-app-muted">Login terakhir: {formatDate(user.lastLoginAt)}</p>
-                </div>
-                <button type="button" disabled={changingId === user.id}
-                  onClick={() => void handleStatusChange(user)}
-                  className="min-h-11 shrink-0 rounded-lg border border-app-border px-3 text-xs font-semibold text-app-text hover:bg-app-bg disabled:cursor-not-allowed disabled:opacity-50">
-                  {changingId === user.id ? "Memproses..." : user.status === "ACTIVE" ? "Nonaktifkan" : user.status === "SUSPENDED" ? "Ditangguhkan" : "Aktifkan"}
-                </button>
-              </article>
-            ))}
-          </div>
-        )}
+        {isLoading ? <div role="status" className="flex min-h-32 items-center justify-center gap-2 text-sm text-app-muted"><RefreshCw size={16} className="animate-spin" /> Memuat daftar pengguna...</div> : users.length === 0 ? (
+          <div className="flex min-h-36 flex-col items-center justify-center px-4 text-center"><LockKeyhole size={20} className="text-app-muted" aria-hidden="true" /><p className="mt-2 text-sm font-semibold text-app-text">Belum ada pengguna yang cocok</p><p className="mt-1 text-xs text-app-muted">Ubah pencarian atau filter, atau buat akun baru.</p></div>
+        ) : <div className="divide-y divide-app-border">{users.map((user) => <article key={user.id} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0"><div className="flex flex-wrap items-center gap-x-2 gap-y-1"><h3 className="text-sm font-semibold text-app-text">{user.fullName}</h3><span className="rounded-md bg-app-soft px-2 py-0.5 text-[11px] text-app-text">{user.roles.map((role) => role.name).join(", ")}</span><span className="text-[11px] text-app-muted">{statusLabels[user.status]}</span>{user.mustChangePassword && <span className="text-[11px] text-app-muted">Wajib ganti password</span>}</div><p className="mt-1 break-all text-xs text-app-muted">{user.identifiers.map((item) => item.identifierValue).join(" · ") || "Identitas belum tersedia"}<span className="mx-2">·</span>Login terakhir: {formatDate(user.lastLoginAt)}</p></div>
+          <button type="button" disabled={changingId === user.id} onClick={() => void handleStatusChange(user)} className="min-h-9 shrink-0 rounded-md border border-app-border px-3 text-xs font-semibold text-app-text hover:bg-app-bg disabled:cursor-not-allowed disabled:opacity-50">{changingId === user.id ? "Memproses..." : user.status === "ACTIVE" ? "Nonaktifkan" : user.status === "SUSPENDED" ? "Ditangguhkan" : "Aktifkan"}</button>
+        </article>)}</div>}
 
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-app-border pt-4">
-          <p className="text-xs text-app-muted">Halaman {page} dari {totalPages}</p>
-          <div className="flex gap-2">
-            <button type="button" disabled={page <= 1 || isLoading} onClick={() => setPage((value) => value - 1)}
-              className="min-h-11 rounded-lg border border-app-border px-3 text-xs font-medium text-app-text hover:bg-app-bg disabled:opacity-40">Sebelumnya</button>
-            <button type="button" disabled={page >= totalPages || isLoading} onClick={() => setPage((value) => value + 1)}
-              className="min-h-11 rounded-lg border border-app-border px-3 text-xs font-medium text-app-text hover:bg-app-bg disabled:opacity-40">Berikutnya</button>
-          </div>
-        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-app-border px-4 py-3"><p className="text-xs text-app-muted">Halaman {page} dari {totalPages}</p><div className="flex gap-2"><button type="button" disabled={page <= 1 || isLoading} onClick={() => setPage((value) => value - 1)} className="min-h-9 rounded-md border border-app-border px-3 text-xs font-medium text-app-text hover:bg-app-bg disabled:opacity-40">Sebelumnya</button><button type="button" disabled={page >= totalPages || isLoading} onClick={() => setPage((value) => value + 1)} className="min-h-9 rounded-md border border-app-border px-3 text-xs font-medium text-app-text hover:bg-app-bg disabled:opacity-40">Berikutnya</button></div></div>
       </section>
-    </div>
+
+      {isCreating && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsCreating(false); }}>
+        <section role="dialog" aria-modal="true" aria-labelledby="user-dialog-title" className="max-h-[min(90dvh,700px)] w-full max-w-xl overflow-y-auto rounded-xl border border-app-border bg-app-surface shadow-xl">
+          <div className="flex items-start justify-between gap-4 border-b border-app-border px-5 py-4"><div className="flex items-start gap-3"><span className="rounded-lg bg-app-soft p-2 text-app-primary"><UserRound size={18} /></span><div><h2 id="user-dialog-title" className="text-base font-semibold text-app-text">Buat akun pengguna</h2><p className="mt-1 text-xs text-app-muted">Password awal hanya digunakan untuk login pertama.</p></div></div><button type="button" onClick={() => setIsCreating(false)} aria-label="Tutup formulir" className="inline-flex size-9 shrink-0 items-center justify-center rounded-md text-app-muted hover:bg-app-bg"><X size={18} /></button></div>
+          <form onSubmit={handleCreate} className="grid gap-3 p-5 sm:grid-cols-2">
+            <label htmlFor="user-full-name" className="text-sm font-medium text-app-text sm:col-span-2">Nama lengkap<input id="user-full-name" name="fullName" required minLength={2} maxLength={150} autoComplete="name" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /></label>
+            <label htmlFor="user-identifier-type" className="text-sm font-medium text-app-text">Jenis identitas<select id="user-identifier-type" name="identifierType" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text"><option value="USERNAME">NIPD / NIS / Username</option><option value="EMAIL">Email</option></select></label>
+            <label htmlFor="user-identifier" className="text-sm font-medium text-app-text">NIPD / NIS / Username<input id="user-identifier" name="identifier" required minLength={3} maxLength={191} autoComplete="username" placeholder="Contoh: 202600123" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /></label>
+            <label htmlFor="user-initial-password" className="text-sm font-medium text-app-text">Password sementara<input id="user-initial-password" name="password" type="password" required minLength={8} maxLength={128} autoComplete="new-password" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /><span className="mt-1 block text-xs font-normal text-app-muted">Minimal 8 karakter. Pengguna wajib menggantinya saat login pertama.</span></label>
+            <label htmlFor="user-role" className="text-sm font-medium text-app-text">Role<select id="user-role" name="roleCode" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text"><option value="STUDENT">Siswa</option><option value="TEACHER">Guru</option><option value="ADMIN">Administrator</option></select></label>
+            <div className="flex justify-end gap-2 border-t border-app-border pt-4 sm:col-span-2"><button type="button" onClick={() => setIsCreating(false)} className="min-h-10 rounded-lg border border-app-border px-4 text-sm font-medium text-app-text hover:bg-app-bg">Batal</button><button type="submit" disabled={creating} className="min-h-10 rounded-lg bg-app-primary px-4 text-sm font-semibold text-app-primary-contrast hover:bg-app-primary-hover disabled:opacity-50">{creating ? "Menyimpan..." : "Simpan akun"}</button></div>
+          </form>
+        </section>
+      </div>}
+    </section>
   );
 }
