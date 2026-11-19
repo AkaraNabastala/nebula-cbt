@@ -111,7 +111,7 @@ export class AcademicService {
       orderBy: [{ gradeLevel: 'asc' }, { name: 'asc' }],
       include: {
         academicYear: { select: { id: true, name: true, isActive: true } },
-        homeroomTeacher: { include: { user: { select: { fullName: true } } } },
+        homeroomTeacher: { select: { id: true, user: { select: { fullName: true } } } },
         _count: { select: { enrollments: true, teacherAssignments: true } },
       },
     });
