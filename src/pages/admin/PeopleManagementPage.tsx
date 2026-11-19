@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useRef, type FormEvent } from "react";
 import { Plus, X } from "lucide-react";
 import { apiRequest } from "../../lib/api";
+import { toast } from "sonner";
 
 type Person = { id: string; user: { fullName: string } };
 type SchoolClass = { id: string; name: string; gradeLevel: number; academicYear: { name: string } };
@@ -24,7 +25,6 @@ export function PeopleManagementPage({ token }: { token: string | null }) {
   const [showActionDialog, setShowActionDialog] = useState(false);
   const actionDialogRef = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -61,7 +61,6 @@ export function PeopleManagementPage({ token }: { token: string | null }) {
     const form = new FormData(formElement);
     setSaving(true);
     setError("");
-    setNotice("");
     try {
       await apiRequest("/people-management/enrollments", {
         method: "POST",
@@ -70,7 +69,7 @@ export function PeopleManagementPage({ token }: { token: string | null }) {
       });
       formElement.reset();
       setShowActionDialog(false);
-      setNotice("Siswa berhasil ditempatkan pada kelas.");
+      toast.success("Siswa berhasil ditempatkan pada kelas.");
       await load();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Penempatan siswa gagal disimpan.");
@@ -86,7 +85,6 @@ export function PeopleManagementPage({ token }: { token: string | null }) {
     const form = new FormData(formElement);
     setSaving(true);
     setError("");
-    setNotice("");
     try {
       await apiRequest("/people-management/teacher-assignments", {
         method: "POST",
@@ -99,7 +97,7 @@ export function PeopleManagementPage({ token }: { token: string | null }) {
       });
       formElement.reset();
       setShowActionDialog(false);
-      setNotice("Penugasan guru berhasil disimpan.");
+      toast.success("Penugasan guru berhasil disimpan.");
       await load();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Penugasan guru gagal disimpan.");
@@ -111,10 +109,9 @@ export function PeopleManagementPage({ token }: { token: string | null }) {
   async function leaveClass(id: string) {
     if (!token) return;
     setError("");
-    setNotice("");
     try {
       await apiRequest(`/people-management/enrollments/${id}/leave`, { method: "PATCH", token });
-      setNotice("Penempatan siswa ditutup.");
+      toast.success("Penempatan siswa ditutup.");
       await load();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Penempatan siswa gagal diperbarui.");
@@ -124,14 +121,13 @@ export function PeopleManagementPage({ token }: { token: string | null }) {
   async function toggleAssignment(item: TeacherAssignment) {
     if (!token) return;
     setError("");
-    setNotice("");
     try {
       await apiRequest(`/people-management/teacher-assignments/${item.id}/status`, {
         method: "PATCH",
         token,
         body: JSON.stringify({ isActive: !item.isActive }),
       });
-      setNotice(item.isActive ? "Penugasan guru dinonaktifkan." : "Penugasan guru diaktifkan.");
+      toast.success(item.isActive ? "Penugasan guru dinonaktifkan." : "Penugasan guru diaktifkan.");
       await load();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Status penugasan gagal diperbarui.");
@@ -146,7 +142,6 @@ export function PeopleManagementPage({ token }: { token: string | null }) {
         <div><h1 className="text-xl font-semibold tracking-tight text-app-text">Siswa dan penugasan guru</h1><p className="mt-1 max-w-2xl text-sm text-app-muted">Atur kelas siswa dan tanggung jawab mata pelajaran setiap guru.</p></div>
         <button type="button" onClick={() => { setError(""); setShowActionDialog(true); }} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-app-primary px-4 text-sm font-semibold text-app-primary-contrast hover:bg-app-primary-hover"><Plus size={16} /> {tab === "students" ? "Tempatkan siswa" : "Tugaskan guru"}</button>
       </header>
-      {notice && <div role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-app-text">{notice}</div>}
       {error && <div role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-app-text">{error}</div>}
       <div className="flex flex-wrap gap-2 border-b border-app-border">
         <button type="button" onClick={() => setTab("students")} aria-pressed={tab === "students"} className={`min-h-11 border-b-2 px-3 text-xs font-semibold ${tab === "students" ? "border-app-primary text-app-primary" : "border-transparent text-app-muted"}`}>Penempatan siswa ({activeEnrollments.length})</button>
