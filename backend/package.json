@@ -21,7 +21,10 @@
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "db:seed": "node prisma/seed.mjs",
-    "db:bootstrap-admin": "node prisma/bootstrap-admin.mjs"
+    "db:bootstrap-admin": "node prisma/bootstrap-admin.mjs",
+    "prisma:generate": "prisma generate --config prisma7.config.ts",
+    "prestart:dev": "npm run prisma:generate",
+    "prebuild": "npm run prisma:generate"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
