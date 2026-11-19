@@ -7,7 +7,7 @@ import argon2 from "argon2";
 if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL belum dikonfigurasi.");
 
 const email = String(process.argv[2] || "").trim().toLowerCase();
-if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
   throw new Error("Gunakan: npm run db:reset-admin-password -- email-admin");
 }
 if (!stdin.isTTY || typeof stdin.setRawMode !== "function") {
@@ -24,23 +24,23 @@ function readSecret(prompt) {
       stdin.off("data", onData);
       stdin.setRawMode(false);
       stdin.pause();
-      stdout.write("\\n");
+      stdout.write("\n");
       if (error) reject(error);
       else resolve(value);
     };
     const onData = (chunk) => {
       for (const char of String(chunk)) {
-        if (char === "\\u0003") {
+        if (char === "\u0003") {
           finish(new Error("Reset dibatalkan."));
           return;
         }
-        if (char === "\\r" || char === "\\n") {
+        if (char === "\r" || char === "\n") {
           finish();
           return;
         }
-        if (char === "\\u007f" || char === "\\b") {
+        if (char === "\u007f" || char === "\b") {
           value = value.slice(0, -1);
-          stdout.write("\\b \\b");
+          stdout.write("\b \b");
           continue;
         }
         if (char >= " ") {
@@ -64,13 +64,13 @@ try {
   await client.query("BEGIN");
   await client.query("SELECT pg_advisory_xact_lock(492167730113)");
   const result = await client.query(
-    `SELECT u.id, u.full_name
+    \`SELECT u.id, u.full_name
      FROM users u
      JOIN user_identifiers i ON i.user_id = u.id
      JOIN user_roles ur ON ur.user_id = u.id
      JOIN roles r ON r.id = ur.role_id
      WHERE i.normalized_value = $1 AND r.code = 'ADMIN'
-     FOR UPDATE OF u`,
+     FOR UPDATE OF u\`,
     [email],
   );
   if (result.rowCount !== 1) {
@@ -88,23 +88,23 @@ try {
   });
 
   await client.query(
-    `UPDATE users
+    \`UPDATE users
      SET password_hash = $1,
          must_change_password = true,
          token_version = token_version + 1,
          updated_at = NOW()
-     WHERE id = $2`,
+     WHERE id = $2\`,
     [passwordHash, admin.id],
   );
   await client.query(
-    `INSERT INTO audit_logs
+    \`INSERT INTO audit_logs
        (id, actor_user_id, action, entity_type, entity_id, description, created_at)
      VALUES ($1, NULL, 'AUTH_ADMIN_PASSWORD_RESET', 'USER', $2,
-       'Password administrator direset melalui skrip pemulihan lokal; sesi lama dicabut.', NOW())`,
+       'Password administrator direset melalui skrip pemulihan lokal; sesi lama dicabut.', NOW())\`,
     [randomUUID(), admin.id],
   );
   await client.query("COMMIT");
-  console.log(`Password akun ADMIN ${admin.full_name} berhasil direset.`);
+  console.log(\`Password akun ADMIN \${admin.full_name} berhasil direset.\`);
   console.log("Login berikutnya wajib mengganti password.");
 } catch (error) {
   await client.query("ROLLBACK");
