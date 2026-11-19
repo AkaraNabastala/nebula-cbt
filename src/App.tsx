@@ -48,7 +48,9 @@ function App() {
                         ? "/admin/results"
                         : role === "TEACHER" && pathname === "/guru/results"
                           ? "/guru/results"
-                          : dashboardPath || "/unsupported";
+                          : role === "ADMIN" && pathname === "/admin/people"
+                            ? "/admin/people"
+                            : dashboardPath || "/unsupported";
   }
 
   useEffect(() => {
@@ -116,7 +118,9 @@ function App() {
               ? "exams"
               : pathname === "/admin/results" || pathname === "/guru/results"
                 ? "results"
-                : "dashboard";
+                : pathname === "/admin/people"
+                  ? "people"
+                  : "dashboard";
 
   return (
     <DashboardPage
@@ -131,6 +135,7 @@ function App() {
           questions: role === "ADMIN" ? "/admin/questions" : "/guru/questions",
           exams: role === "ADMIN" ? "/admin/exams" : role === "TEACHER" ? "/guru/exams" : "/siswa/exams",
           results: role === "ADMIN" ? "/admin/results" : "/guru/results",
+          people: "/admin/people",
           dashboard: dashboardPath,
         } as const;
         navigate(paths[nextPage] ?? dashboardPath ?? "/login");
