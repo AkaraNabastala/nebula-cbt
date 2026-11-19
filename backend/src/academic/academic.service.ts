@@ -28,7 +28,7 @@ export class AcademicService {
 
   async updateEducationSettings(input: unknown, actor: Actor) {
     const existing = await this.prisma.systemSetting.findUnique({ where: { key: 'education_structure' } });
-    const current = existing?.value as { educationLevel?: string } | undefined;
+    const current = existing?.value as { educationLevel?: string; institutionName?: string } | undefined;
     if (current?.educationLevel && current.educationLevel !== 'Belum ditentukan' && current.institutionName) {
       throw new ConflictException('Setup lembaga sudah selesai. Jenjang tidak dapat diubah dari halaman setup.');
     }
