@@ -39,6 +39,7 @@ function App() {
           "/admin/teacher-assignments",
           "/admin/people",
           "/admin/audit-logs",
+          "/admin/education-settings",
         ])
       : role === "TEACHER"
         ? new Set(["/account", "/guru/questions", "/guru/exams", "/guru/results"])
@@ -126,6 +127,8 @@ function App() {
                     ? "teacherAssignments"
                   : pathname === "/admin/audit-logs"
                     ? "audit"
+                    : pathname === "/admin/education-settings"
+                      ? "educationSettings"
                     : "dashboard";
 
   return (
@@ -146,6 +149,7 @@ function App() {
           enrollments: "/admin/enrollments",
           teacherAssignments: "/admin/teacher-assignments",
           audit: "/admin/audit-logs",
+          educationSettings: "/admin/education-settings",
           dashboard: dashboardPath,
         } as const;
         navigate(paths[nextPage] ?? dashboardPath ?? "/login");
