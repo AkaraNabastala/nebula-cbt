@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -14,6 +15,7 @@ import { PermissionGuard } from '../auth/guards/permission.guard.js';
 import { RequirePermissions } from '../auth/decorators/require-permissions.decorator.js';
 import { CreateQuestionBankDto } from './dto/create-question-bank.dto.js';
 import { CreateQuestionDto } from './dto/create-question.dto.js';
+import { UpdateQuestionStatusDto } from './dto/update-question-status.dto.js';
 import { QuestionBanksService } from './question-banks.service.js';
 
 @Controller('question-banks')
@@ -63,4 +65,16 @@ export class QuestionBanksController {
   ) {
     return this.questionBanks.createQuestion(id, dto, this.actor(request));
   }
+
+  @Patch(':id/questions/:questionId/status')
+  @RequirePermissions('questions.manage')
+  updateQuestionStatus(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('questionId', new ParseUUIDPipe()) questionId: string,
+    @Body() dto: UpdateQuestionStatusDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.questionBanks.updateQuestionStatus(id, questionId, dto.status, this.actor(request));
+  }
+
 }
