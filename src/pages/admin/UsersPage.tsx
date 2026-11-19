@@ -112,10 +112,14 @@ export function UsersPage({ token }: { token: string | null }) {
       setSearchInput("");
       setStatusFilter("");
       setNotice("Akun berhasil dibuat. Pengguna wajib mengganti password saat login pertama.");
-      const refreshed = await apiRequest<UsersResponse>("/users?page=1&limit=20", { token });
-      setUsers(refreshed.data);
-      setTotal(refreshed.pagination.total);
-      setTotalPages(Math.max(1, refreshed.pagination.totalPages));
+      try {
+        const refreshed = await apiRequest<UsersResponse>("/users?page=1&limit=20", { token });
+        setUsers(refreshed.data);
+        setTotal(refreshed.pagination.total);
+        setTotalPages(Math.max(1, refreshed.pagination.totalPages));
+      } catch {
+        setError("Akun berhasil dibuat, tetapi daftar pengguna gagal diperbarui. Muat ulang daftar.");
+      }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Akun gagal dibuat.");
     } finally {
@@ -280,6 +284,10 @@ export function UsersPage({ token }: { token: string | null }) {
         {isLoading ? (
           <div role="status" className="flex min-h-36 items-center justify-center gap-3 text-sm text-app-muted">
             <RefreshCw size={17} className="animate-spin" aria-hidden="true" /> Memuat daftar pengguna...
+          </div>
+        ) : error && users.length === 0 ? (
+          <div className="flex min-h-36 items-center justify-center text-center text-sm text-app-muted">
+            Data belum dapat ditampilkan. Gunakan tombol muat ulang untuk mencoba kembali.
           </div>
         ) : users.length === 0 ? (
           <div className="flex min-h-36 flex-col items-center justify-center text-center">
