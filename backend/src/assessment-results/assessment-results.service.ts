@@ -205,7 +205,7 @@ export class AssessmentResultsService {
           description: `Jawaban esai dinilai ${dto.score} dari ${maxPoints} poin.`,
           ipAddress: actor.ipAddress,
           userAgent: actor.userAgent,
-          oldData: existing ? { score: Number(existing.score) } : null,
+          oldData: existing ? { score: Number(existing.score) } : Prisma.JsonNull,
           newData: { answerId, score: dto.score, maxPoints, complete },
         },
       });
