@@ -5,6 +5,7 @@ type AssessmentType = { id: string; code: string; name: string };
 type AcademicYear = { id: string; name: string; isActive: boolean };
 type Subject = { id: string; name: string; code: string | null };
 type SchoolClass = { id: string; name: string; gradeLevel: number; academicYearId: string; academicYear: { name: string; isActive: boolean } };
+type ClassAssignment = { subjectId: string; classId: string };
 type Bank = { id: string; name: string; subjectId: string; subject: Subject };
 type QuestionOption = { id: string; type: string; difficulty: string; content: { text?: string }; defaultPoints: string | number; status: string };
 type Exam = {
@@ -37,6 +38,7 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
   const [years, setYears] = useState<AcademicYear[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [classes, setClasses] = useState<SchoolClass[]>([]);
+  const [classAssignments, setClassAssignments] = useState<ClassAssignment[]>([]);
   const [banks, setBanks] = useState<Bank[]>([]);
   const [questionOptions, setQuestionOptions] = useState<QuestionOption[]>([]);
   const [selectedSubjectId, setSelectedSubjectId] = useState("");
@@ -59,7 +61,7 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
     setError("");
     try {
       const [options, bankData, examData] = await Promise.all([
-        apiRequest<{ assessmentTypes: AssessmentType[]; academicYears: AcademicYear[]; subjects: Subject[]; classes: SchoolClass[] }>("/exam-operations/options", { token }),
+        apiRequest<{ assessmentTypes: AssessmentType[]; academicYears: AcademicYear[]; subjects: Subject[]; classes: SchoolClass[]; classAssignments: ClassAssignment[] }>("/exam-operations/options", { token }),
         apiRequest<Bank[]>("/question-banks", { token }),
         apiRequest<Exam[]>("/exam-operations", { token }),
       ]);
@@ -68,6 +70,7 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
       setSelectedYearId((current) => options.academicYears.some((year) => year.id === current) ? current : options.academicYears.find((year) => year.isActive)?.id ?? options.academicYears[0]?.id ?? "");
       setSubjects(options.subjects);
       setClasses(options.classes);
+      setClassAssignments(options.classAssignments);
       setBanks(bankData);
       setExams(examData);
       setSelectedSubjectId((current) => options.subjects.some((subject) => subject.id === current) ? current : options.subjects[0]?.id ?? "");
@@ -177,7 +180,10 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
     }
   }
 
-  const eligibleClasses = classes.filter((schoolClass) => !selectedYearId || schoolClass.academicYearId === selectedYearId);
+  const eligibleClasses = classes.filter((schoolClass) =>
+    (!selectedYearId || schoolClass.academicYearId === selectedYearId) &&
+    (classAssignments.length === 0 || classAssignments.some((assignment) => assignment.subjectId === selectedSubjectId && assignment.classId === schoolClass.id)),
+  );
 
   return (
     <section className="space-y-6">
