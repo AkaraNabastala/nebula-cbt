@@ -83,7 +83,7 @@ export function DashboardPage({
     account: "Akun saya",
     users: "Akun pengguna",
     academicYears: "Tahun ajaran",
-    academicSubjects: "Mata pelajaran",
+    academicSubjects: "Mapel / mata kuliah",
     academicClasses: "Kelas",
     questions: "Bank soal",
     exams: role === "STUDENT" ? "Ujian saya" : "Operasional ujian",
@@ -125,7 +125,7 @@ export function DashboardPage({
               <div className="mt-1 space-y-1 pl-2">
                 <div className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-app-muted">Akademik</div>
                 <button type="button" onClick={() => setPage("academicYears")} aria-current={page === "academicYears" ? "page" : undefined} className={navClass(page === "academicYears")}><GraduationCap size={16} /> Tahun ajaran</button>
-                <button type="button" onClick={() => setPage("academicSubjects")} aria-current={page === "academicSubjects" ? "page" : undefined} className={navClass(page === "academicSubjects")}><BookOpen size={16} /> Mata pelajaran</button>
+                <button type="button" onClick={() => setPage("academicSubjects")} aria-current={page === "academicSubjects" ? "page" : undefined} className={navClass(page === "academicSubjects")}><BookOpen size={16} /> Mapel / mata kuliah</button>
                 <button type="button" onClick={() => setPage("academicClasses")} aria-current={page === "academicClasses" ? "page" : undefined} className={navClass(page === "academicClasses")}><Users size={16} /> Kelas</button>
                 <button type="button" onClick={() => setPage("users")} aria-current={page === "users" ? "page" : undefined} className={navClass(page === "users")}><Users size={16} /> Akun pengguna</button>
                 <button type="button" onClick={() => setPage("enrollments")} aria-current={page === "enrollments" ? "page" : undefined} className={navClass(page === "enrollments")}><Users size={16} /> Penempatan siswa</button>
@@ -189,7 +189,7 @@ export function DashboardPage({
               <div className="space-y-1 pl-3">
                 <p className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-app-muted">Akademik</p>
                 <button type="button" onClick={() => setPage("academicYears")} aria-current={page === "academicYears" ? "page" : undefined} className={navClass(page === "academicYears")}>Tahun ajaran</button>
-                <button type="button" onClick={() => setPage("academicSubjects")} aria-current={page === "academicSubjects" ? "page" : undefined} className={navClass(page === "academicSubjects")}>Mata pelajaran</button>
+                <button type="button" onClick={() => setPage("academicSubjects")} aria-current={page === "academicSubjects" ? "page" : undefined} className={navClass(page === "academicSubjects")}>Mapel / mata kuliah</button>
                 <button type="button" onClick={() => setPage("academicClasses")} aria-current={page === "academicClasses" ? "page" : undefined} className={navClass(page === "academicClasses")}>Kelas</button>
                 <p className="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-wider text-app-muted">Pengelolaan</p>
                 <button type="button" onClick={() => setPage("users")} aria-current={page === "users" ? "page" : undefined} className={navClass(page === "users")}><Users size={16} /> Akun pengguna</button>
