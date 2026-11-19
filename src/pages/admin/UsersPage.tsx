@@ -27,7 +27,8 @@ export function UsersPage({ token }: { token: string | null }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [isCreating, setIsCreating] = useState(false);\n  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const [creating, setCreating] = useState(false);
   const [changingId, setChangingId] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -166,7 +167,8 @@ export function UsersPage({ token }: { token: string | null }) {
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-app-border px-4 py-3"><p className="text-xs text-app-muted">Halaman {page} dari {totalPages}</p><div className="flex gap-2"><button type="button" disabled={page <= 1 || isLoading} onClick={() => setPage((value) => value - 1)} className="min-h-9 rounded-md border border-app-border px-3 text-xs font-medium text-app-text hover:bg-app-bg disabled:opacity-40">Sebelumnya</button><button type="button" disabled={page >= totalPages || isLoading} onClick={() => setPage((value) => value + 1)} className="min-h-9 rounded-md border border-app-border px-3 text-xs font-medium text-app-text hover:bg-app-bg disabled:opacity-40">Berikutnya</button></div></div>
       </section>
 
-      {isCreating && <dialog ref={dialogRef} onClose={() => setIsCreating(false)} onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }} className="max-h-[min(90dvh,700px)] w-[calc(100%-2rem)] max-w-xl overflow-y-auto rounded-xl border border-app-border bg-app-surface p-0 text-app-text shadow-xl backdrop:bg-slate-950/45">\n        <div>
+      {isCreating && <dialog ref={dialogRef} onClose={() => setIsCreating(false)} onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }} className="max-h-[min(90dvh,700px)] w-[calc(100%-2rem)] max-w-xl overflow-y-auto rounded-xl border border-app-border bg-app-surface p-0 text-app-text shadow-xl backdrop:bg-slate-950/45">
+        <div>
           <div className="flex items-start justify-between gap-4 border-b border-app-border px-5 py-4"><div className="flex items-start gap-3"><span className="rounded-lg bg-app-soft p-2 text-app-primary"><UserRound size={18} /></span><div><h2 id="user-dialog-title" className="text-base font-semibold text-app-text">Buat akun pengguna</h2><p className="mt-1 text-xs text-app-muted">Password awal hanya digunakan untuk login pertama.</p></div></div><button type="button" onClick={() => setIsCreating(false)} aria-label="Tutup formulir" className="inline-flex size-9 shrink-0 items-center justify-center rounded-md text-app-muted hover:bg-app-bg"><X size={18} /></button></div>
           <form onSubmit={handleCreate} className="grid gap-3 p-5 sm:grid-cols-2">
             <label htmlFor="user-full-name" className="text-sm font-medium text-app-text sm:col-span-2">Nama lengkap<input id="user-full-name" name="fullName" required minLength={2} maxLength={150} autoComplete="name" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /></label>
