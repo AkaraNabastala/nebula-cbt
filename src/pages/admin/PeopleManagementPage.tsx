@@ -12,8 +12,9 @@ type TeacherAssignment = { id: string; isActive: boolean; teacher: Person; subje
 const fieldClass = "mt-1.5 min-h-11 w-full rounded-lg border border-app-border bg-app-input px-3 py-2 text-sm text-app-text";
 const labelClass = "block text-xs font-medium text-app-text";
 
-export function PeopleManagementPage({ token }: { token: string | null }) {
-  const [tab, setTab] = useState<"students" | "teachers">("students");
+export type PeopleSection = "enrollments" | "teacherAssignments";
+
+export function PeopleManagementPage({ token, section }: { token: string | null; section: PeopleSection }) {
   const [students, setStudents] = useState<Person[]>([]);
   const [teachers, setTeachers] = useState<Person[]>([]);
   const [classes, setClasses] = useState<SchoolClass[]>([]);
@@ -139,32 +140,34 @@ export function PeopleManagementPage({ token }: { token: string | null }) {
   return (
     <section className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div><h1 className="text-xl font-semibold tracking-tight text-app-text">Siswa dan penugasan guru</h1><p className="mt-1 max-w-2xl text-sm text-app-muted">Atur kelas siswa dan tanggung jawab mata pelajaran setiap guru.</p></div>
-        <button type="button" onClick={() => { setError(""); setShowActionDialog(true); }} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-app-primary px-4 text-sm font-semibold text-app-primary-contrast hover:bg-app-primary-hover"><Plus size={16} /> {tab === "students" ? "Tempatkan siswa" : "Tugaskan guru"}</button>
+        <div><p className="text-xs font-semibold tracking-[0.12em] text-[#318BCB]">ADMINISTRASI SEKOLAH / PENGELOLAAN</p><h1 className="mt-2 text-2xl font-semibold tracking-tight text-app-text">{section === "enrollments" ? "Penempatan siswa" : "Penugasan guru"}</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-app-muted">{section === "enrollments" ? "Tempatkan siswa ke rombongan belajar dan kelola riwayat kelasnya." : "Atur guru pengampu berdasarkan mata pelajaran dan kelas."}</p></div>
+        <button type="button" onClick={() => { setError(""); setShowActionDialog(true); }} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-app-primary px-4 text-sm font-semibold text-app-primary-contrast hover:bg-app-primary-hover"><Plus size={16} /> {section === "enrollments" ? "Tempatkan siswa" : "Tugaskan guru"}</button>
       </header>
       {error && <div role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-app-text">{error}</div>}
-      <div className="flex flex-wrap gap-2 border-b border-app-border">
-        <button type="button" onClick={() => setTab("students")} aria-pressed={tab === "students"} className={`min-h-11 border-b-2 px-3 text-xs font-semibold ${tab === "students" ? "border-app-primary text-app-primary" : "border-transparent text-app-muted"}`}>Penempatan siswa ({activeEnrollments.length})</button>
-        <button type="button" onClick={() => setTab("teachers")} aria-pressed={tab === "teachers"} className={`min-h-11 border-b-2 px-3 text-xs font-semibold ${tab === "teachers" ? "border-app-primary text-app-primary" : "border-transparent text-app-muted"}`}>Penugasan guru ({assignments.filter((item) => item.isActive).length})</button>
-        <button type="button" onClick={() => void load()} disabled={loading} className="ml-auto min-h-11 rounded-lg border border-app-border px-3 text-xs font-medium text-app-text disabled:opacity-50">Muat ulang</button>
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px]">
+        <div className="rounded-xl border border-app-border bg-app-surface px-4 py-3">
+          <p className="text-xs text-app-muted">{section === "enrollments" ? "Penempatan aktif" : "Penugasan aktif"}</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-app-text">{section === "enrollments" ? activeEnrollments.length : assignments.filter((item) => item.isActive).length}</p>
+        </div>
+        <div className="rounded-xl border border-app-border bg-app-surface px-4 py-3">
+          <p className="text-xs text-app-muted">Total riwayat</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-app-text">{section === "enrollments" ? enrollments.length : assignments.length}</p>
+        </div>
       </div>
-
-      {tab === "students" ? <div className="grid items-start gap-4">
-        
+      {section === "enrollments" ? (
         <section className="overflow-hidden rounded-2xl border border-app-border bg-app-surface">
-          <div className="border-b border-app-border px-4 py-4"><h2 className="text-sm font-semibold text-app-text">Riwayat penempatan</h2><p className="mt-1 text-xs text-app-muted">{enrollments.length} penempatan tercatat</p></div>
+          <div className="border-b border-app-border px-4 py-4"><h2 className="text-sm font-semibold text-app-text">Riwayat penempatan siswa</h2><p className="mt-1 text-xs text-app-muted">{enrollments.length} penempatan tercatat</p></div>
           {loading ? <p className="px-4 py-10 text-center text-sm text-app-muted">Memuat penempatan…</p> : enrollments.length === 0 ? <p className="px-4 py-10 text-center text-sm text-app-muted">Belum ada siswa ditempatkan.</p> : <ul className="divide-y divide-app-border">{enrollments.map((item) => <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-4"><div><p className="text-sm font-semibold text-app-text">{item.student.user.fullName}</p><p className="mt-1 text-xs text-app-muted">{item.class.name} · {item.class.academicYear.name}</p><p className="mt-1 text-[11px] text-app-muted">{item.leftAt ? "Selesai" : "Aktif"}</p></div>{!item.leftAt && <button type="button" onClick={() => void leaveClass(item.id)} className="min-h-10 rounded-lg border border-app-border px-3 text-xs font-medium text-app-text">Akhiri penempatan</button>}</li>)}</ul>}
         </section>
-      </div> : <div className="grid items-start gap-5 xl:grid-cols-[340px_minmax(0,1fr)]">
-        
+      ) : (
         <section className="overflow-hidden rounded-2xl border border-app-border bg-app-surface">
-          <div className="border-b border-app-border px-4 py-4"><h2 className="text-sm font-semibold text-app-text">Daftar penugasan</h2><p className="mt-1 text-xs text-app-muted">{assignments.length} penugasan tercatat</p></div>
+          <div className="border-b border-app-border px-4 py-4"><h2 className="text-sm font-semibold text-app-text">Daftar penugasan guru</h2><p className="mt-1 text-xs text-app-muted">{assignments.length} penugasan tercatat</p></div>
           {loading ? <p className="px-4 py-10 text-center text-sm text-app-muted">Memuat penugasan…</p> : assignments.length === 0 ? <p className="px-4 py-10 text-center text-sm text-app-muted">Belum ada penugasan guru.</p> : <ul className="divide-y divide-app-border">{assignments.map((item) => <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-4"><div><p className="text-sm font-semibold text-app-text">{item.teacher.user.fullName}</p><p className="mt-1 text-xs text-app-muted">{item.subject.name} · {item.class.name} · {item.class.academicYear.name}</p><p className="mt-1 text-[11px] text-app-muted">{item.isActive ? "Aktif" : "Nonaktif"}</p></div><button type="button" onClick={() => void toggleAssignment(item)} className="min-h-10 rounded-lg border border-app-border px-3 text-xs font-medium text-app-text">{item.isActive ? "Nonaktifkan" : "Aktifkan"}</button></li>)}</ul>}
         </section>
-      </div>}
-      {showActionDialog && <dialog ref={actionDialogRef} onClose={() => setShowActionDialog(false)} onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }} className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-xl border border-app-border bg-app-surface p-0 text-app-text shadow-xl backdrop:bg-slate-950/45">
+      )}
+      {showActionDialog && <dialog ref={actionDialogRef} onClose={() => setShowActionDialog(false)} onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }} className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-xl border border-app-border bg-app-surface p-0 text-app-text shadow-2xl">
         <div className="flex justify-end px-4 pt-3"><button type="button" onClick={() => setShowActionDialog(false)} aria-label="Tutup formulir" className="inline-flex size-9 items-center justify-center rounded-md text-app-muted hover:bg-app-bg"><X size={18} /></button></div>
-        {tab === "students" ? <form onSubmit={submitEnrollment} className="space-y-3 px-5 pb-5">
+        {section === "enrollments" ? <form onSubmit={submitEnrollment} className="space-y-3 px-5 pb-5">
           <div><h2 className="text-sm font-semibold text-app-text">Tempatkan siswa</h2><p className="mt-1 text-xs leading-5 text-app-muted">Satu siswa hanya dapat memiliki satu kelas aktif dalam satu tahun ajaran.</p></div>
           <label className={labelClass}>Siswa<select name="studentProfileId" required defaultValue="" className={fieldClass}><option value="" disabled>Pilih siswa</option>{students.map((item) => <option key={item.id} value={item.id}>{item.user.fullName}</option>)}</select></label>
           <label className={labelClass}>Kelas<select name="classId" required defaultValue="" className={fieldClass}><option value="" disabled>Pilih kelas</option>{classes.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.academicYear.name}</option>)}</select></label>
