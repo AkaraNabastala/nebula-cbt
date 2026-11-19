@@ -147,6 +147,22 @@ async function seed() {
       );
     }
 
+
+    const assessmentTypes = [
+      ["EXAM", "Ujian", "Asesmen terjadwal dengan paket soal."],
+      ["QUIZ", "Kuis", "Asesmen singkat untuk evaluasi pembelajaran."],
+      ["PRACTICE", "Latihan", "Latihan mandiri atau terbimbing."],
+    ];
+
+    for (const [code, name, description] of assessmentTypes) {
+      await client.query(
+        `INSERT INTO assessment_types (id, code, name, description)
+         VALUES (gen_random_uuid(), $1, $2, $3)
+         ON CONFLICT (code) DO NOTHING`,
+        [code, name, description],
+      );
+    }
+
     const roleResult = await client.query(
       `SELECT id, code FROM roles WHERE code = ANY($1::varchar[])`,
       [roles.map((role) => role.code)],
@@ -222,6 +238,7 @@ async function seed() {
     console.log(`Role tersedia: ${roleResult.rowCount}`);
     console.log(`Permission katalog: ${permissionResult.rowCount}`);
     console.log("Kebijakan login: EMAIL dan USERNAME untuk 3 kategori.");
+    console.log("Jenis asesmen dasar tersedia: EXAM, QUIZ, PRACTICE.");
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;
