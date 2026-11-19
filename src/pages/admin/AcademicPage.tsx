@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useState, useRef, type FormEvent } from "react";
 import { Plus, RefreshCw, X } from "lucide-react";
 import { apiRequest } from "../../lib/api";
 
@@ -18,7 +18,7 @@ export function AcademicPage({ token }: { token: string | null }) {
   const [classes, setClasses] = useState<SchoolClass[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);\n  const dialogRef = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
@@ -49,12 +49,9 @@ export function AcademicPage({ token }: { token: string | null }) {
   useEffect(() => { void Promise.resolve().then(load); }, [load]);
 
   useEffect(() => {
-    if (!isCreating) return;
-    function closeOnEscape(event: globalThis.KeyboardEvent) {
-      if (event.key === "Escape") setIsCreating(false);
+    if (isCreating && dialogRef.current && !dialogRef.current.open) {
+      dialogRef.current.showModal();
     }
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
   }, [isCreating]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -148,8 +145,7 @@ export function AcademicPage({ token }: { token: string | null }) {
         ) : classes.length ? <div className="divide-y divide-app-border">{classes.map((schoolClass) => <div key={schoolClass.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"><div><p className="text-sm font-semibold text-app-text">{schoolClass.name}</p><p className="mt-1 text-xs text-app-muted">Kelas {schoolClass.gradeLevel} · {schoolClass.academicYear.name}</p></div><p className="text-xs text-app-muted">{schoolClass._count?.enrollments ?? 0} siswa</p></div>)}</div> : <p className="px-4 py-12 text-center text-sm text-app-muted">Belum ada kelas.</p>}
       </div>
 
-      {isCreating && <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) setIsCreating(false); }}>
-        <section role="dialog" aria-modal="true" aria-labelledby="academic-dialog-title" className="max-h-[min(90dvh,680px)] w-full max-w-lg overflow-y-auto rounded-xl border border-app-border bg-app-surface shadow-xl">
+      {isCreating && <dialog ref={dialogRef} onClose={() => setIsCreating(false)} onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }} className="max-h-[min(90dvh,680px)] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-xl border border-app-border bg-app-surface p-0 text-app-text shadow-xl backdrop:bg-slate-950/45">\n        <div>
           <div className="flex items-start justify-between gap-4 border-b border-app-border px-5 py-4">
             <div><h2 id="academic-dialog-title" className="text-base font-semibold text-app-text">{title}</h2><p className="mt-1 text-xs text-app-muted">Lengkapi informasi yang diperlukan.</p></div>
             <button type="button" onClick={() => setIsCreating(false)} aria-label="Tutup formulir" className="inline-flex size-9 shrink-0 items-center justify-center rounded-md text-app-muted hover:bg-app-bg hover:text-app-text"><X size={18} /></button>
@@ -177,8 +173,7 @@ export function AcademicPage({ token }: { token: string | null }) {
               <button type="submit" disabled={saving || (tab === "classes" && years.length === 0)} className="min-h-10 rounded-lg bg-app-primary px-4 text-sm font-semibold text-app-primary-contrast hover:bg-app-primary-hover disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Menyimpan..." : "Simpan"}</button>
             </div>
           </form>
-        </section>
-      </div>}
+        </div>\n      </dialog>}
     </section>
   );
 }
