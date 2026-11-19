@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, useRef, type FormEvent } from "react";
+import { Plus, X } from "lucide-react";
 import { apiRequest } from "../../lib/api";
 
 type Subject = { id: string; code: string | null; name: string };
@@ -46,6 +47,10 @@ export function QuestionsPage({ token }: { token: string | null }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [updatingQuestionId, setUpdatingQuestionId] = useState("");
+  const [showBankDialog, setShowBankDialog] = useState(false);
+  const [showQuestionDialog, setShowQuestionDialog] = useState(false);
+  const bankDialogRef = useRef<HTMLDialogElement>(null);
+  const questionDialogRef = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
@@ -85,6 +90,12 @@ export function QuestionsPage({ token }: { token: string | null }) {
     }
   }, [token]);
 
+  useEffect(() => {
+    if (showBankDialog && bankDialogRef.current && !bankDialogRef.current.open) bankDialogRef.current.showModal();
+  }, [showBankDialog]);
+  useEffect(() => {
+    if (showQuestionDialog && questionDialogRef.current && !questionDialogRef.current.open) questionDialogRef.current.showModal();
+  }, [showQuestionDialog]);
   useEffect(() => { void Promise.resolve().then(loadBanks); }, [loadBanks]);
   useEffect(() => {
     if (selectedBankId) void Promise.resolve().then(() => loadQuestions(selectedBankId));
@@ -110,6 +121,7 @@ export function QuestionsPage({ token }: { token: string | null }) {
         }),
       });
       formElement.reset();
+      setShowBankDialog(false);
       setNotice(`Bank soal "${bank.name}" berhasil dibuat.`);
       await loadBanks();
       setSelectedBankId(bank.id);
@@ -158,6 +170,7 @@ export function QuestionsPage({ token }: { token: string | null }) {
         body: JSON.stringify(payload),
       });
       formElement.reset();
+      setShowQuestionDialog(false);
       setQuestionType("SINGLE_CHOICE");
       setNotice("Soal berhasil disimpan sebagai draf.");
       await loadQuestions(selectedBankId);
@@ -194,17 +207,18 @@ export function QuestionsPage({ token }: { token: string | null }) {
 
   return (
     <section className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight text-app-text">Bank soal</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-app-muted">
-          Susun soal per mata pelajaran. Kunci jawaban dan pedoman penilaian hanya tampil di ruang kerja pengajar.
-        </p>
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div><h1 className="text-xl font-semibold tracking-tight text-app-text">Bank soal</h1><p className="mt-1 max-w-2xl text-sm text-app-muted">Susun soal per mata pelajaran dan siapkan untuk paket ujian.</p></div>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={() => setShowBankDialog(true)} disabled={subjects.length === 0} className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-app-border px-3 text-sm font-medium text-app-text hover:bg-app-bg disabled:opacity-50"><Plus size={15} /> Bank soal</button>
+          <button type="button" onClick={() => setShowQuestionDialog(true)} disabled={!selectedBankId} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-app-primary px-3 text-sm font-semibold text-app-primary-contrast hover:bg-app-primary-hover disabled:opacity-50"><Plus size={15} /> Tambah soal</button>
+        </div>
       </header>
 
       {notice && <div role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-app-text">{notice}</div>}
       {error && <div role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-app-text">{error}</div>}
 
-      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid items-start gap-4">
         <div className="min-w-0 space-y-4">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <label className={`${labelClass} min-w-0 flex-1 sm:max-w-md`}>
@@ -261,7 +275,8 @@ export function QuestionsPage({ token }: { token: string | null }) {
           </div>
         </div>
 
-        <aside className="space-y-5">
+        <dialog ref={bankDialogRef} onClose={() => setShowBankDialog(false)} onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }} className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-xl border border-app-border bg-app-surface p-0 text-app-text shadow-xl backdrop:bg-slate-950/45">
+          <div className="flex justify-end px-4 pt-3"><button type="button" onClick={() => setShowBankDialog(false)} aria-label="Tutup formulir bank soal" className="inline-flex size-9 items-center justify-center rounded-md text-app-muted hover:bg-app-bg"><X size={18} /></button></div>
           <form onSubmit={createBank} className="space-y-3 rounded-2xl border border-app-border bg-app-surface p-4 sm:p-5">
             <div>
               <h2 className="text-sm font-semibold text-app-text">Buat bank soal</h2>
@@ -284,7 +299,9 @@ export function QuestionsPage({ token }: { token: string | null }) {
             </button>
             {subjects.length === 0 && <p className="text-xs text-app-muted">Belum ada mata pelajaran yang dapat digunakan. Periksa penugasan guru atau data akademik.</p>}
           </form>
-
+        </dialog>
+        <dialog ref={questionDialogRef} onClose={() => setShowQuestionDialog(false)} onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }} className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto rounded-xl border border-app-border bg-app-surface p-0 text-app-text shadow-xl backdrop:bg-slate-950/45">
+          <div className="flex justify-end px-4 pt-3"><button type="button" onClick={() => setShowQuestionDialog(false)} aria-label="Tutup formulir soal" className="inline-flex size-9 items-center justify-center rounded-md text-app-muted hover:bg-app-bg"><X size={18} /></button></div>
           <form onSubmit={createQuestion} className="space-y-3 rounded-2xl border border-app-border bg-app-surface p-4 sm:p-5">
             <div>
               <h2 className="text-sm font-semibold text-app-text">Tambah soal</h2>
@@ -338,7 +355,7 @@ export function QuestionsPage({ token }: { token: string | null }) {
             </button>
             {!selectedBankId && <p className="text-xs text-app-muted">Pilih atau buat bank soal sebelum menambahkan soal.</p>}
           </form>
-        </aside>
+        </dialog>
       </div>
     </section>
   );
