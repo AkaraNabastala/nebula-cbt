@@ -40,7 +40,7 @@ describe('AcademicService education structure', () => {
   it('stores administrator-defined departments and writes an audit record', async () => {
     const value = {
       institutionType: 'Madrasah',
-      institutionName: '',
+      institutionName: 'Madrasah Al-Hikmah',
       logoDataUrl: '',
       educationLevel: 'MA',
       departmentsEnabled: true,
