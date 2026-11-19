@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useRef, type FormEvent } from "react";
 import { Plus, RefreshCw, X } from "lucide-react";
 import { apiRequest } from "../../lib/api";
+import { toast } from "sonner";
 
 type AcademicYear = { id: string; name: string; startDate: string; endDate: string; isActive: boolean; _count?: { classes: number } };
 type Subject = { id: string; code: string | null; name: string; isActive: boolean; _count?: { teacherAssignments: number; questionBanks: number } };
@@ -21,7 +22,6 @@ export function AcademicPage({ token }: { token: string | null }) {
   const [isCreating, setIsCreating] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const load = useCallback(async () => {
     if (!token) {
@@ -74,12 +74,11 @@ export function AcademicPage({ token }: { token: string | null }) {
     }
     setSaving(true);
     setError("");
-    setNotice("");
     try {
       await apiRequest(endpoint, { method: "POST", token, body: JSON.stringify(payload) });
       formElement.reset();
       setIsCreating(false);
-      setNotice("Data akademik berhasil disimpan.");
+      toast.success("Data akademik berhasil disimpan.");
       await load();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Data akademik gagal disimpan.");
@@ -92,10 +91,9 @@ export function AcademicPage({ token }: { token: string | null }) {
     if (!token || year.isActive) return;
     setSaving(true);
     setError("");
-    setNotice("");
     try {
       await apiRequest(`/academic/years/${year.id}/activate`, { method: "PATCH", token });
-      setNotice(`Tahun ajaran ${year.name} sekarang aktif.`);
+      toast.success(`Tahun ajaran ${year.name} sekarang aktif.`);
       await load();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Tahun ajaran gagal diaktifkan.");
@@ -123,8 +121,6 @@ export function AcademicPage({ token }: { token: string | null }) {
           <Plus size={16} aria-hidden="true" /> Tambah {tab === "years" ? "tahun ajaran" : tab === "subjects" ? "mata pelajaran" : "kelas"}
         </button>
       </div>
-
-      {notice && <div role="status" className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-app-text">{notice}</div>}
       {error && <div role="alert" className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm text-app-text"><span>{error}</span><button type="button" onClick={() => void load()} className="font-semibold underline underline-offset-2">Coba lagi</button></div>}
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-app-border">
