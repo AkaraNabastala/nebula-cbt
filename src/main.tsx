@@ -10,7 +10,7 @@ import App from "./App";
 import { AuthProvider } from "./contexts/AuthContext";
 import { useTheme } from "./hooks/useTheme";
 
-function ApplicationRoot() {
+export function ApplicationRoot() {
   const { resolvedTheme } = useTheme();
 
   return (
