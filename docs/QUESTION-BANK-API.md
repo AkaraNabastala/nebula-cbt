@@ -11,6 +11,7 @@ All routes require a valid JWT and the listed permission. Teacher access is addi
 | POST | `/question-banks` | `question_banks.manage` | Create a bank for an accessible subject |
 | GET | `/question-banks/:id/questions` | `questions.read` | List questions, options, answer keys, and grading guides for teacher/admin workspace |
 | POST | `/question-banks/:id/questions` | `questions.manage` | Create a question and its answer key |
+| PATCH | `/question-banks/:id/questions/:questionId/status` | `questions.manage` | Move a question through review, publish, and archive states |
 
 ## Create a bank
 
@@ -24,7 +25,7 @@ All routes require a valid JWT and the listed permission. Teacher access is addi
 
 ## Create a question
 
-Every question has `type`, `difficulty`, `content`, and `points`. New questions are saved with status `DRAFT`; they are not automatically added to an exam paper.
+Every question has `type`, `difficulty`, `content`, and `points`. New questions are saved with status `DRAFT`; they are not automatically added to an exam paper. The allowed lifecycle is `DRAFT` → `REVIEWED` → `PUBLISHED` → `ARCHIVED`. A reviewed question may return to draft before publication.
 
 ### Single choice / multiple choice
 
