@@ -15,6 +15,34 @@ type Actor = { id: string; ipAddress?: string; userAgent?: string };
 export class AcademicService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async getEducationSettings() {
+    const setting = await this.prisma.systemSetting.findUnique({ where: { key: 'education_structure' } });
+    return setting?.value ?? { institutionType: 'SMA', educationLevel: 'SMA', departmentsEnabled: false, departments: [] };
+  }
+
+  async updateEducationSettings(input: unknown, actor: Actor) {
+    if (!input || typeof input !== 'object' || Array.isArray(input)) throw new BadRequestException('Pengaturan lembaga tidak valid.');
+    const value = input as Record<string, unknown>;
+    const institutionType = typeof value.institutionType === 'string' ? value.institutionType.trim() : '';
+    const educationLevel = typeof value.educationLevel === 'string' ? value.educationLevel.trim() : '';
+    const departmentsEnabled = value.departmentsEnabled === true;
+    const departments = Array.isArray(value.departments) ? value.departments : [];
+    if (!institutionType || institutionType.length > 80 || !educationLevel || educationLevel.length > 80) throw new BadRequestException('Jenis lembaga dan jenjang pendidikan wajib diisi.');
+    if (departments.length > 200 || departments.some((item) => typeof item !== 'string' || !item.trim() || item.trim().length > 120)) throw new BadRequestException('Daftar jurusan tidak valid.');
+    const normalizedDepartments = [...new Set((departments as string[]).map((item) => item.trim()))];
+    if (!departmentsEnabled && normalizedDepartments.length) throw new BadRequestException('Aktifkan pengelolaan jurusan sebelum menyimpan daftar jurusan.');
+    const nextValue = { institutionType, educationLevel, departmentsEnabled, departments: normalizedDepartments };
+    return this.prisma.$transaction(async (tx) => {
+      const setting = await tx.systemSetting.upsert({
+        where: { key: 'education_structure' },
+        create: { key: 'education_structure', value: nextValue, description: 'Konfigurasi jenjang dan pengelompokan lembaga CBT', updatedById: actor.id },
+        update: { value: nextValue, updatedById: actor.id },
+      });
+      await tx.auditLog.create({ data: { actorUserId: actor.id, action: 'EDUCATION_STRUCTURE_UPDATED', entityType: 'SYSTEM_SETTING', entityId: setting.id, description: 'Konfigurasi jenjang pendidikan dan jurusan diperbarui.', newData: nextValue } });
+      return setting.value;
+    });
+  }
+
   listYears() {
     return this.prisma.academicYear.findMany({
       orderBy: [{ isActive: 'desc' }, { startDate: 'desc' }],
@@ -84,7 +112,7 @@ export class AcademicService {
     try {
       return await this.prisma.$transaction(async (tx) => {
         const subject = await tx.subject.create({
-          data: { name, code: dto.code?.trim().toUpperCase() || null },
+          data: { name, code: dto.code?.trim().toUpperCase() || null, category: dto.category?.trim() || "Umum" },
         });
         await tx.auditLog.create({
           data: {
@@ -92,7 +120,7 @@ export class AcademicService {
             entityType: 'SUBJECT', entityId: subject.id,
             description: `Mata pelajaran ${subject.name} dibuat.`,
             ipAddress: actor.ipAddress, userAgent: actor.userAgent,
-            newData: { name: subject.name, code: subject.code },
+            newData: { name: subject.name, code: subject.code, category: subject.category },
           },
         });
         return subject;
@@ -130,6 +158,7 @@ export class AcademicService {
           data: {
             name: dto.name.trim(), gradeLevel: dto.gradeLevel,
             academicYearId: dto.academicYearId,
+            departmentName: dto.departmentName?.trim() || null,
             homeroomTeacherId: dto.homeroomTeacherId || null,
           },
         });
