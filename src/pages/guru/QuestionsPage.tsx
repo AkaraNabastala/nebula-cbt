@@ -277,7 +277,7 @@ export function QuestionsPage({ token }: { token: string | null }) {
 
         <dialog ref={bankDialogRef} onClose={() => setShowBankDialog(false)} onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }} className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-xl border border-app-border bg-app-surface p-0 text-app-text shadow-xl backdrop:bg-slate-950/45">
           <div className="flex justify-end px-4 pt-3"><button type="button" onClick={() => setShowBankDialog(false)} aria-label="Tutup formulir bank soal" className="inline-flex size-9 items-center justify-center rounded-md text-app-muted hover:bg-app-bg"><X size={18} /></button></div>
-          <form onSubmit={createBank} className="space-y-3 rounded-2xl border border-app-border bg-app-surface p-4 sm:p-5">
+          <form onSubmit={createBank} className="space-y-3 px-5 pb-5">
             <div>
               <h2 className="text-sm font-semibold text-app-text">Buat bank soal</h2>
               <p className="mt-1 text-xs leading-5 text-app-muted">Guru hanya dapat memilih mata pelajaran yang ditugaskan pada tahun ajaran aktif.</p>
