@@ -1,9 +1,8 @@
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
-import { Logger } from '@nestjs/common';
 import { AppModule } from './app.module.js';
 
 async function bootstrap() {
