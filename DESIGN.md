@@ -21,4 +21,5 @@ ENERGY 1 / RHYTHM 2 / MOTION 1.
 - No remote fonts or third-party runtime scripts.
 - No large decorative hero media in authenticated screens.
 - Role dashboards render only the current user's relevant overview.
-- Unavailable modules are visibly marked as not yet activated.
+- Visible navigation points only to implemented, role-appropriate screens; unfinished capabilities are not presented as active controls.
+- Mobile workspace navigation uses a compact disclosure menu instead of squeezing the desktop navigation row.
