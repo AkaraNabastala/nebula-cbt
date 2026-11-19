@@ -17,7 +17,7 @@ function App() {
 
   const pathname = usePathname();
   const [mustChangeNotice, setMustChangeNotice] = useState("");
-  const { user, isLoading, login, logout, changePassword } = useAuth();
+  const { user, token, isLoading, login, logout, changePassword } = useAuth();
 
   const role = user ? getPrimaryRole(user.roles) : "";
   const dashboardPath = user ? getDashboardPath(role) : null;
@@ -89,6 +89,7 @@ function App() {
   return (
     <DashboardPage
       user={user}
+      token={token}
       page={pathname === "/account" ? "account" : pathname === "/admin/users" ? "users" : "dashboard"}
       setPage={(page) =>
         navigate(page === "account" ? "/account" : page === "users" ? "/admin/users" : dashboardPath)
