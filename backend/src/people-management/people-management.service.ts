@@ -174,7 +174,7 @@ export class PeopleManagementService {
           action: 'TEACHER_ASSIGNMENT_CREATED',
           entityType: 'TEACHER_ASSIGNMENT',
           entityId: assignment.id,
-          description: `${assignment.teacher.user.fullName} ditugaskan pada ${assignment.subject.name} — ${assignment.class.name}.`,
+          description: `${assignment.teacher.user.fullName} ditugaskan pada ${assignment.subject.name} / ${assignment.class.name}.`,
           ipAddress: actor.ipAddress,
           userAgent: actor.userAgent,
           newData: { teacherProfileId: dto.teacherProfileId, subjectId: dto.subjectId, classId: dto.classId },
