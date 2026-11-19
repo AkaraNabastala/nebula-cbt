@@ -156,8 +156,8 @@ async function seed() {
 
     for (const [code, name, description] of assessmentTypes) {
       await client.query(
-        `INSERT INTO assessment_types (id, code, name, description)
-         VALUES (gen_random_uuid(), $1, $2, $3)
+        `INSERT INTO assessment_types (id, code, name, description, "createdAt", "updatedAt")
+         VALUES (gen_random_uuid(), $1, $2, $3, NOW(), NOW())
          ON CONFLICT (code) DO NOTHING`,
         [code, name, description],
       );
