@@ -10,8 +10,8 @@ type EducationSettings = {
 };
 
 const defaults: EducationSettings = {
-  institutionType: "SMA",
-  educationLevel: "SMA",
+  institutionType: "Sekolah / lembaga pendidikan",
+  educationLevel: "Belum ditentukan",
   departmentsEnabled: false,
   departments: [],
 };
@@ -103,7 +103,7 @@ export function EducationSettingsPage({ token }: { token: string | null }) {
               <input value={settings.institutionType} onChange={(event) => setSettings((current) => ({ ...current, institutionType: event.target.value }))} required maxLength={80} placeholder="Contoh: Sekolah, Madrasah, Universitas" className={inputClass} />
             </label>
             <label className="block text-sm font-medium text-app-text">Jenjang pendidikan
-              <select value={settings.educationLevel} onChange={(event) => setSettings((current) => ({ ...current, educationLevel: event.target.value }))} className={inputClass}>
+              <select value={settings.educationLevel} onChange={(event) => setSettings((current) => ({ ...current, educationLevel: event.target.value }))} required className={inputClass}>
                 <option value="Belum ditentukan" disabled>Pilih jenjang pendidikan</option>
                 <option value="SD/MI">SD/MI</option>
                 <option value="SMP/MTs">SMP/MTs</option>
@@ -145,7 +145,7 @@ export function EducationSettingsPage({ token }: { token: string | null }) {
         </section>
 
         <div className="flex justify-end">
-          <button type="submit" disabled={saving || !settings.institutionType.trim()} className="min-h-11 rounded-lg bg-app-primary px-5 text-sm font-semibold text-app-primary-contrast hover:bg-app-primary-hover disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Menyimpan..." : "Simpan konfigurasi"}</button>
+          <button type="submit" disabled={saving || !settings.institutionType.trim() || settings.educationLevel === "Belum ditentukan"} className="min-h-11 rounded-lg bg-app-primary px-5 text-sm font-semibold text-app-primary-contrast hover:bg-app-primary-hover disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Menyimpan..." : "Simpan konfigurasi"}</button>
         </div>
       </form>
     </section>
