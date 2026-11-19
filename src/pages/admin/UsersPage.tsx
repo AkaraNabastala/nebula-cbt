@@ -79,7 +79,7 @@ export function UsersPage({ token }: { token: string | null }) {
   }, [token, page, search, statusFilter]);
 
   useEffect(() => {
-    void loadUsers();
+    void Promise.resolve().then(loadUsers);
   }, [loadUsers]);
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
