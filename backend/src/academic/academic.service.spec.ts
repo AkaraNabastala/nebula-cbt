@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import { AcademicService } from './academic.service.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 
@@ -28,6 +28,8 @@ describe('AcademicService education structure', () => {
 
     await expect(service.getEducationSettings()).resolves.toEqual({
       institutionType: 'Sekolah / lembaga pendidikan',
+      institutionName: '',
+      logoDataUrl: '',
       educationLevel: 'Belum ditentukan',
       departmentsEnabled: false,
       departments: [],
@@ -79,6 +81,33 @@ describe('AcademicService education structure', () => {
       departmentsEnabled: true,
       departments: [''],
     }, { id: 'admin-1' })).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+
+  it('returns institution branding for signed-in workspace users', async () => {
+    vi.mocked(prisma.systemSetting.findUnique).mockResolvedValue({
+      value: { institutionName: 'SMA Contoh', logoDataUrl: 'data:image/png;base64,AA==' },
+    } as never);
+
+    await expect(service.getInstitutionBranding()).resolves.toEqual({
+      institutionName: 'SMA Contoh',
+      logoDataUrl: 'data:image/png;base64,AA==',
+    });
+  });
+
+  it('locks the initial setup after an education level has been saved', async () => {
+    vi.mocked(prisma.systemSetting.findUnique).mockResolvedValue({
+      value: { educationLevel: 'SMA/MA' },
+    } as never);
+
+    await expect(service.updateEducationSettings({
+      institutionType: 'Sekolah',
+      educationLevel: 'SMP/MTs',
+      departmentsEnabled: false,
+      departments: [],
+    }, { id: 'admin-1' })).rejects.toBeInstanceOf(ConflictException);
 
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
