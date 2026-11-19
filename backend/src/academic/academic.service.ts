@@ -173,7 +173,7 @@ export class AcademicService {
             entityType: 'CLASS', entityId: schoolClass.id,
             description: `Kelas ${schoolClass.name} dibuat untuk ${year.name}.`,
             ipAddress: actor.ipAddress, userAgent: actor.userAgent,
-            newData: { name: schoolClass.name, gradeLevel: schoolClass.gradeLevel, academicYearId: year.id },
+            newData: { name: schoolClass.name, gradeLevel: schoolClass.gradeLevel, academicYearId: year.id, departmentName: schoolClass.departmentName },
           },
         });
         return schoolClass;
