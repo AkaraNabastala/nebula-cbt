@@ -235,14 +235,25 @@ export class StudentExamsService {
 
   private isValidAnswer(snapshot: QuestionSnapshot, answerData: Record<string, unknown>) {
     const options = snapshot.options ?? [];
+    const keys = Object.keys(answerData);
     if (snapshot.type === 'SINGLE_CHOICE' || snapshot.type === 'TRUE_FALSE') {
-      return typeof answerData.selectedOptionId === 'string' && options.some((option) => option.id === answerData.selectedOptionId);
+      return keys.length === 1 && keys[0] === 'selectedOptionId' &&
+        typeof answerData.selectedOptionId === 'string' &&
+        options.some((option) => option.id === answerData.selectedOptionId);
     }
     if (snapshot.type === 'MULTIPLE_CHOICE') {
-      return Array.isArray(answerData.selectedOptionIds) &&
-        answerData.selectedOptionIds.every((id) => typeof id === 'string' && options.some((option) => option.id === id));
+      const selected = answerData.selectedOptionIds;
+      return keys.length === 1 && keys[0] === 'selectedOptionIds' &&
+        Array.isArray(selected) && selected.length <= options.length &&
+        new Set(selected).size === selected.length &&
+        selected.every((id) => typeof id === 'string' && options.some((option) => option.id === id));
     }
-    return (snapshot.type === 'SHORT_ANSWER' || snapshot.type === 'ESSAY') && typeof answerData.text === 'string';
+    if (snapshot.type === 'SHORT_ANSWER' || snapshot.type === 'ESSAY') {
+      return keys.length === 1 && keys[0] === 'text' &&
+        typeof answerData.text === 'string' &&
+        answerData.text.length <= (snapshot.type === 'ESSAY' ? 20000 : 5000);
+    }
+    return false;
   }
 
   async sync(attemptId: string, sessionToken: string | undefined, dto: SyncAttemptDto, actor: Actor) {
@@ -262,6 +273,8 @@ export class StudentExamsService {
         status: previousBatch.status,
         acceptedCount: previousBatch.acceptedCount,
         rejectedCount: previousBatch.rejectedCount,
+        acceptedQuestionIds: ((previousBatch.details as { acceptedQuestionIds?: string[] } | null)?.acceptedQuestionIds ?? []),
+        rejectedQuestionIds: ((previousBatch.details as { rejectedQuestionIds?: string[] } | null)?.rejectedQuestionIds ?? []),
         serverVersion: attempt.serverVersion,
         serverTime: new Date(),
         duplicate: true,
@@ -274,10 +287,12 @@ export class StudentExamsService {
       let acceptedCount = 0;
       let rejectedCount = 0;
       const acceptedIds: string[] = [];
+      const rejectedIds: string[] = [];
       for (const item of dto.answers) {
         const question = questions.get(item.questionId);
         if (!question || !this.isValidAnswer(question.questionSnapshot as unknown as QuestionSnapshot, item.answerData)) {
           rejectedCount += 1;
+          rejectedIds.push(item.questionId);
           continue;
         }
         const answerVersion = item.answerVersion ?? 1;
@@ -287,6 +302,7 @@ export class StudentExamsService {
         });
         if (current && current.answerVersion >= answerVersion) {
           rejectedCount += 1;
+          rejectedIds.push(item.questionId);
           continue;
         }
         await tx.attemptAnswer.upsert({
@@ -316,14 +332,14 @@ export class StudentExamsService {
           receivedCount: dto.answers.length,
           acceptedCount,
           rejectedCount,
-          details: { acceptedQuestionIds: acceptedIds } as Prisma.InputJsonValue,
+          details: { acceptedQuestionIds: acceptedIds, rejectedQuestionIds: rejectedIds } as Prisma.InputJsonValue,
         },
       });
       await tx.attemptDeviceSession.updateMany({
         where: { attemptId, sessionTokenHash: hash(sessionToken!), status: 'ACTIVE' },
         data: { lastSeenAt: now },
       });
-      return { clientBatchId: dto.clientBatchId, status, acceptedCount, rejectedCount, serverVersion: updated.serverVersion, serverTime: now, duplicate: false };
+      return { clientBatchId: dto.clientBatchId, status, acceptedCount, rejectedCount, acceptedQuestionIds: acceptedIds, rejectedQuestionIds: rejectedIds, serverVersion: updated.serverVersion, serverTime: now, duplicate: false };
     });
   }
 
