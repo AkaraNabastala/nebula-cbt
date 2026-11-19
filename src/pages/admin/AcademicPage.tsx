@@ -128,7 +128,7 @@ export function AcademicPage({ token, section }: { token: string | null; section
     <section className="space-y-5">
       <div className="flex flex-col gap-4 rounded-2xl border border-app-border bg-app-surface p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
         <div className="min-w-0">
-          <p className="text-xs font-semibold tracking-[0.12em] text-[#318BCB]">ADMINISTRASI SEKOLAH / AKADEMIK</p>
+          <p className="text-xs font-semibold tracking-[0.12em] text-[#318BCB]">DATA CBT / AKADEMIK</p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-app-text">{copy.title}</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-app-muted">{copy.description}</p>
         </div>
