@@ -359,6 +359,17 @@ export class StudentExamsService {
     });
     if (!attempt) throw new NotFoundException('Percobaan ujian tidak ditemukan.');
     if (attempt.receipt) return { status: attempt.status, receipt: attempt.receipt, alreadySubmitted: true };
+    const submittedAnswerCount = attempt.answers.length;
+    const existingQuestionIds = new Set(attempt.answers.map((answer) => answer.examPaperQuestionId));
+    for (const question of attempt.participant.examPaper.questions) {
+      const snapshot = question.questionSnapshot as unknown as QuestionSnapshot;
+      if (snapshot.type === 'ESSAY' && !existingQuestionIds.has(question.id)) {
+        const placeholder = await tx.attemptAnswer.create({
+          data: { attemptId, examPaperQuestionId: question.id, answerData: { text: '' } },
+        });
+        attempt.answers.push(placeholder);
+      }
+    }
     const answerMap = new Map(attempt.answers.map((answer) => [answer.examPaperQuestionId, answer.answerData as Record<string, unknown>]));
     let rawScore = 0;
     let hasEssay = false;
@@ -389,7 +400,7 @@ export class StudentExamsService {
     const now = new Date();
     const receiptCode = `NBL-${randomBytes(6).toString('hex').toUpperCase()}`;
     const receipt = await tx.attemptSubmissionReceipt.create({
-      data: { attemptId, receiptCode, answerCount: attempt.answers.length, submittedAt: now },
+      data: { attemptId, receiptCode, answerCount: submittedAnswerCount, submittedAt: now },
     });
     await tx.attempt.update({
       where: { id: attemptId },
