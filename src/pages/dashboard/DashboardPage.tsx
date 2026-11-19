@@ -35,7 +35,7 @@ const roleDetails: Record<string, {
   ADMIN: {
     label: "Administrator",
     title: "Ruang kendali sistem",
-    description: "Area pengelolaan Nebula CBT untuk administrasi dan operasional platform.",
+    description: "Area pengelolaan data peserta, struktur akademik, dan operasional ujian.",
   },
   TEACHER: {
     label: "Guru",
@@ -120,7 +120,7 @@ export function DashboardPage({
             {role === "STUDENT" && <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={navClass(page === "exams")}><ClipboardList size={17} /> Ujian saya</button>}
             {role === "ADMIN" && <details className="group rounded-lg" open={["academicYears", "academicSubjects", "academicClasses", "users", "enrollments", "teacherAssignments"].includes(page)}>
               <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-xs font-semibold text-app-muted hover:bg-app-bg hover:text-app-text">
-                <span>Administrasi sekolah</span><span aria-hidden="true" className="text-app-muted transition-transform group-open:rotate-90">›</span>
+                <span>Data & peserta</span><span aria-hidden="true" className="text-app-muted transition-transform group-open:rotate-90">›</span>
               </summary>
               <div className="mt-1 space-y-1 pl-2">
                 <div className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-app-muted">Akademik</div>
@@ -185,7 +185,7 @@ export function DashboardPage({
             </details>}
             {role === "STUDENT" && <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={navClass(page === "exams")}><ClipboardList size={16} /> Ujian saya</button>}
             {role === "ADMIN" && <details className="group rounded-lg">
-              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-sm font-semibold text-app-muted hover:bg-app-bg hover:text-app-text"><span>Administrasi sekolah</span><span aria-hidden="true">›</span></summary>
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-sm font-semibold text-app-muted hover:bg-app-bg hover:text-app-text"><span>Data & peserta</span><span aria-hidden="true">›</span></summary>
               <div className="space-y-1 pl-3">
                 <p className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-app-muted">Akademik</p>
                 <button type="button" onClick={() => setPage("academicYears")} aria-current={page === "academicYears" ? "page" : undefined} className={navClass(page === "academicYears")}>Tahun ajaran</button>
