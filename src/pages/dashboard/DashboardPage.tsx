@@ -145,7 +145,7 @@ export function DashboardPage({
             <button
               type="button"
               onClick={() => void onLogout()}
-              className="inline-flex h-10 items-center gap-2 rounded-xl border border-app-border px-3 text-xs font-semibold text-app-text hover:bg-app-bg"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-app-border px-3 text-xs font-semibold text-app-text hover:bg-app-bg"
             >
               <LogOut size={15} />
               <span className="hidden sm:inline">Keluar</span>
@@ -158,7 +158,7 @@ export function DashboardPage({
             type="button"
             onClick={() => setPage("dashboard")}
             aria-current={page === "dashboard" ? "page" : undefined}
-            className={`rounded-lg px-3 py-2 text-xs font-medium ${
+            className={`min-h-11 rounded-lg px-3 py-2 text-xs font-medium ${
               page === "dashboard" ? "bg-app-soft text-app-primary" : "text-app-muted"
             }`}
           >
