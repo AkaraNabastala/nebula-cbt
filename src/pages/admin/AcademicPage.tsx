@@ -5,7 +5,8 @@ import { apiRequest } from "../../lib/api";
 
 type AcademicYear = { id: string; name: string; startDate: string; endDate: string; isActive: boolean; _count?: { classes: number } };
 type Subject = { id: string; code: string | null; name: string; category: string; isActive: boolean; _count?: { teacherAssignments: number; questionBanks: number } };
-type EducationSettings = { departmentsEnabled: boolean; departments: string[] };\ntype SchoolClass = { id: string; name: string; gradeLevel: number; departmentName: string | null; academicYearId: string; academicYear: { id: string; name: string; isActive: boolean }; _count?: { enrollments: number; teacherAssignments: number } };
+type EducationSettings = { departmentsEnabled: boolean; departments: string[] };
+type SchoolClass = { id: string; name: string; gradeLevel: number; departmentName: string | null; academicYearId: string; academicYear: { id: string; name: string; isActive: boolean }; _count?: { enrollments: number; teacherAssignments: number } };
 
 export type AcademicSection = "years" | "subjects" | "classes";
 
@@ -37,7 +38,8 @@ function dateLabel(value: string) {
 export function AcademicPage({ token, section }: { token: string | null; section: AcademicSection }) {
   const [years, setYears] = useState<AcademicYear[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [classes, setClasses] = useState<SchoolClass[]>([]);\n  const [educationSettings, setEducationSettings] = useState<EducationSettings>({ departmentsEnabled: false, departments: [] });
+  const [classes, setClasses] = useState<SchoolClass[]>([]);
+  const [educationSettings, setEducationSettings] = useState<EducationSettings>({ departmentsEnabled: false, departments: [] });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -57,11 +59,13 @@ export function AcademicPage({ token, section }: { token: string | null; section
       const [yearData, subjectData, classData, educationData] = await Promise.all([
         apiRequest<AcademicYear[]>("/academic/years", { token }),
         apiRequest<Subject[]>("/academic/subjects", { token }),
-        apiRequest<SchoolClass[]>("/academic/classes", { token }),\n        apiRequest<EducationSettings>("/academic/education-settings", { token }),
+        apiRequest<SchoolClass[]>("/academic/classes", { token }),
+        apiRequest<EducationSettings>("/academic/education-settings", { token }),
       ]);
       setYears(yearData);
       setSubjects(subjectData);
-      setClasses(classData);\n      setEducationSettings({ departmentsEnabled: educationData.departmentsEnabled === true, departments: Array.isArray(educationData.departments) ? educationData.departments : [] });
+      setClasses(classData);
+      setEducationSettings({ departmentsEnabled: educationData.departmentsEnabled === true, departments: Array.isArray(educationData.departments) ? educationData.departments : [] });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Data akademik gagal dimuat.");
     } finally {
@@ -183,11 +187,13 @@ export function AcademicPage({ token, section }: { token: string | null; section
             </div>
           </> : section === "subjects" ? <>
             <label className="block text-sm font-medium text-app-text">Nama mata pelajaran / mata kuliah<input name="name" required maxLength={120} placeholder="Matematika" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /></label>
-            <label className="block text-sm font-medium text-app-text">Kode (opsional)<input name="code" maxLength={30} placeholder="MTK" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /></label>\n            <label className="block text-sm font-medium text-app-text">Kategori mata pelajaran<input name="category" maxLength={80} placeholder="Umum, Kejuruan, Produktif, Peminatan..." className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /><span className="mt-1 block text-xs text-app-muted">Kategori bebas ditentukan admin dan tidak bergantung pada jurusan.</span></label>
+            <label className="block text-sm font-medium text-app-text">Kode (opsional)<input name="code" maxLength={30} placeholder="MTK" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /></label>
+            <label className="block text-sm font-medium text-app-text">Kategori mata pelajaran<input name="category" maxLength={80} placeholder="Umum, Kejuruan, Produktif, Peminatan..." className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /><span className="mt-1 block text-xs text-app-muted">Kategori bebas ditentukan admin dan tidak bergantung pada jurusan.</span></label>
           </> : <>
             <label className="block text-sm font-medium text-app-text">Nama kelas<input name="name" required maxLength={80} placeholder="VII A" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /></label>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block text-sm font-medium text-app-text">Tingkat / semester<select name="gradeLevel" required defaultValue="7" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text">{Array.from({ length: 20 }, (_, index) => index + 1).map((grade) => <option key={grade} value={grade}>{grade}</option>)}</select></label>\n              {educationSettings.departmentsEnabled && <label className="block text-sm font-medium text-app-text">Jurusan / program (opsional)<select name="departmentName" defaultValue="" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text"><option value="">Tanpa jurusan</option>{educationSettings.departments.map((department) => <option key={department} value={department}>{department}</option>)}</select></label>}
+              <label className="block text-sm font-medium text-app-text">Tingkat / semester<select name="gradeLevel" required defaultValue="7" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text">{Array.from({ length: 20 }, (_, index) => index + 1).map((grade) => <option key={grade} value={grade}>{grade}</option>)}</select></label>
+              {educationSettings.departmentsEnabled && <label className="block text-sm font-medium text-app-text">Jurusan / program (opsional)<select name="departmentName" defaultValue="" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text"><option value="">Tanpa jurusan</option>{educationSettings.departments.map((department) => <option key={department} value={department}>{department}</option>)}</select></label>}
               <label className="block text-sm font-medium text-app-text">Tahun ajaran<select name="academicYearId" required defaultValue="" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text"><option value="" disabled>Pilih tahun ajaran</option>{years.map((year) => <option key={year.id} value={year.id}>{year.name}{year.isActive ? " (Aktif)" : ""}</option>)}</select></label>
             </div>
             {years.length === 0 && <p className="text-xs text-app-muted">Buat tahun ajaran terlebih dahulu sebelum menambah kelas.</p>}
