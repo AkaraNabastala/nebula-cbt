@@ -125,25 +125,24 @@ export class StudentExamsService {
         },
       });
       if (!participant) throw new NotFoundException('Jadwal ujian untuk akun ini tidak ditemukan.');
-      if (participant.examSchedule.status !== 'PUBLISHED' || participant.examSchedule.exam.status !== 'PUBLISHED') {
-        throw new ConflictException('Ujian belum diterbitkan.');
-      }
 
       const now = new Date();
       const schedule = participant.examSchedule;
-      if (now < schedule.startsAt) throw new ConflictException('Ujian belum dimulai.');
-      if (now >= schedule.endsAt) throw new ConflictException('Waktu sesi ujian sudah berakhir.');
-
       let attempt = participant.attempt;
       if (attempt && attempt.status !== 'IN_PROGRESS') {
         return {
           alreadyClosed: true,
           status: attempt.status,
-          receipt: participant.attempt?.receipt ?? null,
+          receipt: attempt.receipt,
           serverTime: now,
         };
       }
       if (!attempt) {
+        if (schedule.status !== 'PUBLISHED' || schedule.exam.status !== 'PUBLISHED') {
+          throw new ConflictException('Ujian belum diterbitkan.');
+        }
+        if (now < schedule.startsAt) throw new ConflictException('Ujian belum dimulai.');
+        if (now >= schedule.endsAt) throw new ConflictException('Waktu sesi ujian sudah berakhir.');
         if (participant.status !== 'REGISTERED' && participant.status !== 'CHECKED_IN') {
           throw new ConflictException('Status peserta tidak mengizinkan memulai ujian.');
         }
@@ -154,9 +153,12 @@ export class StudentExamsService {
         });
         await tx.examParticipant.update({ where: { id: participant.id }, data: { status: 'IN_PROGRESS' } });
       }
-      if (now >= attempt.deadlineAt) {
+      if (now >= attempt.deadlineAt || now >= schedule.endsAt) {
         const closed = await this.finalize(tx, attempt.id, true);
         return { alreadyClosed: true, ...closed, serverTime: now };
+      }
+      if (schedule.status !== 'PUBLISHED' || schedule.exam.status !== 'PUBLISHED') {
+        throw new ConflictException('Ujian tidak lagi aktif.');
       }
 
       const sessionToken = await this.createDeviceSession(tx, attempt.id, dto, actor);
