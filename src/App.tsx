@@ -106,7 +106,9 @@ function App() {
           ? "questions"
           : pathname === "/admin/exams" || pathname === "/guru/exams"
             ? "exams"
-            : "dashboard";
+            : pathname === "/siswa/exams"
+              ? "exams"
+              : "dashboard";
 
   return (
     <DashboardPage
@@ -119,7 +121,7 @@ function App() {
           users: "/admin/users",
           academic: "/admin/academic",
           questions: role === "ADMIN" ? "/admin/questions" : "/guru/questions",
-          exams: role === "ADMIN" ? "/admin/exams" : "/guru/exams",
+          exams: role === "ADMIN" ? "/admin/exams" : role === "TEACHER" ? "/guru/exams" : "/siswa/exams",
           dashboard: dashboardPath,
         } as const;
         navigate(paths[nextPage] ?? dashboardPath ?? "/login");
