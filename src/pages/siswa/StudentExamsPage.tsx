@@ -66,7 +66,7 @@ export function StudentExamsPage({ token }: { token: string | null }) {
   const [notice, setNotice] = useState("");
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const flushRef = useRef<() => Promise<boolean>>(async () => true);
-  const submitRef = useRef<() => Promise<void>>(async () => {});
+  const submitRef = useRef<(deadlineReached?: boolean) => Promise<void>>(async () => {});
   const batchIdRef = useRef("");
 
   const loadExams = useCallback(async () => {
@@ -230,13 +230,15 @@ export function StudentExamsPage({ token }: { token: string | null }) {
     setPendingAnswers((current) => ({ ...current, [questionId]: next }));
   }
 
-  const submitAttempt = useCallback(async () => {
+  const submitAttempt = useCallback(async (deadlineReached = false) => {
     if (!attempt || !token || !sessionToken || submitting) return;
     setSubmitting(true);
     setError("");
     try {
+      const pendingCount = Object.keys(pendingAnswers).length;
       const synced = await flush();
-      if (!synced && Object.keys(pendingAnswers).length) {
+      const mayCloseWithServerAnswers = deadlineReached || remainingSeconds <= 0;
+      if (!synced && pendingCount && !mayCloseWithServerAnswers) {
         setError("Jawaban belum tersinkron. Sambungkan internet sebelum mengirim ujian.");
         return;
       }
@@ -252,20 +254,25 @@ export function StudentExamsPage({ token }: { token: string | null }) {
       setSessionToken("");
       setAnswers({});
       setPendingAnswers({});
-      setNotice(result.status === "EXPIRED" ? "Waktu habis. Jawaban terakhir yang tersimpan telah ditutup." : "Ujian berhasil dikirim.");
+      setError("");
+      setNotice(!synced && pendingCount && mayCloseWithServerAnswers
+        ? "Waktu habis. Hanya jawaban yang sudah tersimpan di server yang dihitung."
+        : result.status === "EXPIRED"
+          ? "Waktu habis. Jawaban terakhir yang tersimpan telah ditutup."
+          : "Ujian berhasil dikirim.");
       await loadExams();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Ujian gagal dikirim.");
     } finally {
       setSubmitting(false);
     }
-  }, [attempt, token, sessionToken, submitting, flush, pendingAnswers, loadExams]);
+  }, [attempt, token, sessionToken, submitting, flush, pendingAnswers, remainingSeconds, loadExams]);
 
   useEffect(() => { submitRef.current = submitAttempt; }, [submitAttempt]);
 
   useEffect(() => {
     if (!attempt?.id) return;
-    const timeout = window.setTimeout(() => { void submitRef.current(); }, initialRemainingSeconds * 1000);
+    const timeout = window.setTimeout(() => { void submitRef.current(true); }, initialRemainingSeconds * 1000);
     return () => window.clearTimeout(timeout);
   }, [attempt?.id, initialRemainingSeconds]);
 
