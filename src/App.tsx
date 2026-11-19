@@ -34,7 +34,11 @@ function App() {
           ? "/admin/users"
           : role === "ADMIN" && pathname === "/admin/academic"
             ? "/admin/academic"
-          : dashboardPath || "/unsupported";
+            : role === "ADMIN" && pathname === "/admin/questions"
+              ? "/admin/questions"
+              : role === "TEACHER" && pathname === "/guru/questions"
+                ? "/guru/questions"
+                : dashboardPath || "/unsupported";
   }
 
   useEffect(() => {
@@ -88,14 +92,31 @@ function App() {
     );
   }
 
+  const page = pathname === "/account"
+    ? "account"
+    : pathname === "/admin/users"
+      ? "users"
+      : pathname === "/admin/academic"
+        ? "academic"
+        : pathname === "/admin/questions" || pathname === "/guru/questions"
+          ? "questions"
+          : "dashboard";
+
   return (
     <DashboardPage
       user={user}
       token={token}
-      page={pathname === "/account" ? "account" : pathname === "/admin/users" ? "users" : pathname === "/admin/academic" ? "academic" : "dashboard"}
-      setPage={(page) =>
-        navigate(page === "account" ? "/account" : page === "users" ? "/admin/users" : page === "academic" ? "/admin/academic" : dashboardPath)
-      }
+      page={page}
+      setPage={(nextPage) => {
+        const paths = {
+          account: "/account",
+          users: "/admin/users",
+          academic: "/admin/academic",
+          questions: role === "ADMIN" ? "/admin/questions" : "/guru/questions",
+          dashboard: dashboardPath,
+        } as const;
+        navigate(paths[nextPage]);
+      }}
       onLogout={logout}
       onChangePassword={() => navigate("/account")}
     />
