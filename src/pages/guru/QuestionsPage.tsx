@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useRef, type FormEvent } from "react";
 import { Plus, X } from "lucide-react";
 import { apiRequest } from "../../lib/api";
+import { toast } from "sonner";
 
 type Subject = { id: string; code: string | null; name: string };
 type Bank = {
@@ -52,7 +53,6 @@ export function QuestionsPage({ token }: { token: string | null }) {
   const bankDialogRef = useRef<HTMLDialogElement>(null);
   const questionDialogRef = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const loadBanks = useCallback(async () => {
     if (!token) {
@@ -109,7 +109,6 @@ export function QuestionsPage({ token }: { token: string | null }) {
     const form = new FormData(formElement);
     setSaving(true);
     setError("");
-    setNotice("");
     try {
       const bank = await apiRequest<Bank>("/question-banks", {
         method: "POST",
@@ -122,7 +121,7 @@ export function QuestionsPage({ token }: { token: string | null }) {
       });
       formElement.reset();
       setShowBankDialog(false);
-      setNotice(`Bank soal "${bank.name}" berhasil dibuat.`);
+      toast.success(`Bank soal "${bank.name}" berhasil dibuat.`);
       await loadBanks();
       setSelectedBankId(bank.id);
     } catch (cause) {
@@ -162,7 +161,6 @@ export function QuestionsPage({ token }: { token: string | null }) {
 
     setSaving(true);
     setError("");
-    setNotice("");
     try {
       await apiRequest(`/question-banks/${selectedBankId}/questions`, {
         method: "POST",
@@ -172,7 +170,7 @@ export function QuestionsPage({ token }: { token: string | null }) {
       formElement.reset();
       setShowQuestionDialog(false);
       setQuestionType("SINGLE_CHOICE");
-      setNotice("Soal berhasil disimpan sebagai draf.");
+      toast.success("Soal berhasil disimpan sebagai draf.");
       await loadQuestions(selectedBankId);
       await loadBanks();
     } catch (cause) {
@@ -187,14 +185,13 @@ export function QuestionsPage({ token }: { token: string | null }) {
     if (!token || !selectedBankId) return;
     setUpdatingQuestionId(questionId);
     setError("");
-    setNotice("");
     try {
       await apiRequest(`/question-banks/${selectedBankId}/questions/${questionId}/status`, {
         method: "PATCH",
         token,
         body: JSON.stringify({ status }),
       });
-      setNotice(status === "REVIEWED" ? "Soal ditandai telah ditinjau." : status === "PUBLISHED" ? "Soal diterbitkan dan siap dipilih ke paket ujian." : "Soal diarsipkan.");
+      toast.success(status === "REVIEWED" ? "Soal ditandai telah ditinjau." : status === "PUBLISHED" ? "Soal diterbitkan dan siap dipilih ke paket ujian." : "Soal diarsipkan.");
       await loadQuestions(selectedBankId);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Status soal gagal diperbarui.");
@@ -214,8 +211,6 @@ export function QuestionsPage({ token }: { token: string | null }) {
           <button type="button" onClick={() => setShowQuestionDialog(true)} disabled={!selectedBankId} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-app-primary px-3 text-sm font-semibold text-app-primary-contrast hover:bg-app-primary-hover disabled:opacity-50"><Plus size={15} /> Tambah soal</button>
         </div>
       </header>
-
-      {notice && <div role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-app-text">{notice}</div>}
       {error && <div role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-app-text">{error}</div>}
 
       <div className="grid items-start gap-4">
