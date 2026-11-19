@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { Prisma } from '../generated/prisma/client.js';
 import type { CreateQuestionBankDto } from './dto/create-question-bank.dto.js';
 import type { CreateQuestionDto } from './dto/create-question.dto.js';
 
@@ -90,6 +91,11 @@ export class QuestionBanksService {
   }
 
   async createBank(dto: CreateQuestionBankDto, actor: Actor) {
+    const subject = await this.prisma.subject.findUnique({
+      where: { id: dto.subjectId },
+      select: { id: true, isActive: true },
+    });
+    if (!subject || !subject.isActive) throw new NotFoundException('Mata pelajaran aktif tidak ditemukan.');
     await this.assertSubjectAccess(dto.subjectId, actor);
     const name = dto.name.trim();
     if (!name) throw new BadRequestException('Nama bank soal wajib diisi.');
@@ -154,7 +160,7 @@ export class QuestionBanksService {
       ? [{ label: 'A', text: 'Benar' }, { label: 'B', text: 'Salah' }]
       : (dto.options ?? []).map((option) => ({ label: option.label.trim().toUpperCase(), text: option.text.trim() }));
 
-    let answerData: Record<string, unknown>;
+    let answerData: Prisma.InputJsonValue;
     if (CHOICE_TYPES.has(dto.type)) {
       if (options.length < 2 || options.some((option) => !option.label || !option.text)) {
         throw new BadRequestException('Soal pilihan harus memiliki minimal dua opsi berlabel dan berisi.');
