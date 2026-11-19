@@ -8,6 +8,7 @@ type StudentExam = {
   schedule: { id: string; sessionName: string; startsAt: string; endsAt: string; durationMinutes: number; status: string };
   attempt: { id: string; status: string; startedAt: string; deadlineAt: string; submittedAt: string | null; receipt: Receipt | null } | null;
 };
+type StudentResult = { id: string; examName: string; subjectName: string; className: string; rawScore: number; finalScore: number; maxScore: number; publishedAt: string | null };
 type ExamQuestion = {
   id: string;
   type: "SINGLE_CHOICE" | "MULTIPLE_CHOICE" | "TRUE_FALSE" | "SHORT_ANSWER" | "ESSAY";
@@ -48,6 +49,7 @@ const inputClass = "mt-2 min-h-11 w-full rounded-lg border border-app-border bg-
 
 export function StudentExamsPage({ token }: { token: string | null }) {
   const [exams, setExams] = useState<StudentExam[]>([]);
+  const [results, setResults] = useState<StudentResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [startingId, setStartingId] = useState("");
   const [attempt, setAttempt] = useState<AttemptState | null>(null);
@@ -76,7 +78,12 @@ export function StudentExamsPage({ token }: { token: string | null }) {
     setLoading(true);
     setError("");
     try {
-      setExams(await apiRequest<StudentExam[]>("/student/exams", { token }));
+      const [examData, resultData] = await Promise.all([
+        apiRequest<StudentExam[]>("/student/exams", { token }),
+        apiRequest<StudentResult[]>("/student/results", { token }),
+      ]);
+      setExams(examData);
+      setResults(resultData);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Daftar ujian gagal dimuat.");
     } finally {
@@ -327,6 +334,12 @@ export function StudentExamsPage({ token }: { token: string | null }) {
           })}
         </div>
       )}
+      <section className="space-y-3">
+        <div><h2 className="text-sm font-semibold text-app-text">Hasil ujian yang diterbitkan</h2><p className="mt-1 text-xs text-app-muted">Nilai tampil setelah guru atau administrator menerbitkannya.</p></div>
+        {results.length === 0 ? <p className="rounded-xl border border-app-border bg-app-surface px-4 py-6 text-center text-xs text-app-muted">Belum ada hasil yang diterbitkan.</p> : <div className="grid gap-3 sm:grid-cols-2">
+          {results.map((result) => <article key={result.id} className="rounded-xl border border-app-border bg-app-surface p-4"><h3 className="text-sm font-semibold text-app-text">{result.examName}</h3><p className="mt-1 text-xs text-app-muted">{result.subjectName} · {result.className}</p><p className="mt-3 text-2xl font-bold tabular-nums text-app-text">{result.finalScore}<span className="ml-1 text-sm font-medium text-app-muted">/ {result.maxScore}</span></p><p className="mt-1 text-[11px] text-app-muted">Nilai mentah: {result.rawScore}{result.publishedAt ? " · " + formatDate(result.publishedAt) : ""}</p></article>)}
+        </div>}
+      </section>
     </section>
   );
 }
