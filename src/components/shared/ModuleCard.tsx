@@ -10,8 +10,8 @@ export function ModuleCard({
   description: string;
 }) {
   return (
-    <article className="flex min-h-36 gap-4 rounded-2xl border border-app-border bg-app-surface p-5">
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-app-soft text-[#318BCB]">
+    <article className="flex min-h-36 gap-4 rounded-xl border border-app-border bg-app-surface p-5 shadow-sm">
+      <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-app-soft text-app-primary">
         {icon}
       </div>
       <div className="min-w-0">
