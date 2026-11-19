@@ -142,7 +142,7 @@ export function DashboardPage({
         </header>
 
         <details className="border-b border-app-border bg-app-surface lg:hidden">
-          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-5 text-xs font-semibold text-app-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-app-primary">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-5 text-xs font-semibold text-app-text hover:bg-app-bg active:bg-app-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-app-primary">
             <span>Menu workspace</span>
             <span className="font-normal text-app-muted">{page === "dashboard" ? "Ringkasan" : page === "users" ? "Pengguna" : page === "academic" ? "Akademik" : page === "questions" ? "Bank soal" : page === "exams" ? (role === "STUDENT" ? "Ujian saya" : "Operasional ujian") : page === "results" ? "Penilaian dan hasil" : page === "people" ? "Siswa dan penugasan" : page === "audit" ? "Audit log" : "Akun saya"}</span>
           </summary>
