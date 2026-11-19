@@ -190,7 +190,7 @@ export class StudentExamsService {
     if (!sessionToken) throw new ForbiddenException('Sesi ujian tidak ditemukan. Mulai ulang atau pulihkan sesi.');
     const session = await tx.attemptDeviceSession.findFirst({
       where: { attemptId, sessionTokenHash: hash(sessionToken), status: 'ACTIVE' },
-      select: { id: true, attempt: { select: { participant: { select: { studentProfileId: true } } } },
+      select: { id: true, attempt: { select: { participant: { select: { studentProfileId: true } } } } },
     });
     if (!session || session.attempt.participant.studentProfileId !== studentProfileId) {
       throw new ForbiddenException('Token sesi ujian tidak valid.');
