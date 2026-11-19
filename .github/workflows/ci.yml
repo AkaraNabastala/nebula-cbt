@@ -26,6 +26,20 @@ jobs:
   backend:
     name: Backend checks
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: nebula_cbt
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d nebula_cbt"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     defaults:
       run:
         working-directory: backend
@@ -44,6 +58,8 @@ jobs:
       - run: node --check prisma/reset-admin-password.mjs
       - run: node --check prisma/seed.mjs
       - run: npx prisma generate --config prisma7.config.ts
+      - run: npx prisma migrate deploy --config prisma7.config.ts
+      - run: npm run db:seed
       - run: npm run lint
       - run: npm test
       - run: npm run test:e2e
