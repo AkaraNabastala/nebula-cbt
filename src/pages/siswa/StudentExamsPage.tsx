@@ -55,8 +55,8 @@ export function StudentExamsPage({ token }: { token: string | null }) {
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const [pendingAnswers, setPendingAnswers] = useState<Record<string, PendingAnswer>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [serverOffset, setServerOffset] = useState(0);
-  const [clockTick, setClockTick] = useState(0);
+  const [remainingSeconds, setRemainingSeconds] = useState(0);
+  const [initialRemainingSeconds, setInitialRemainingSeconds] = useState(0);
   const [syncing, setSyncing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [online, setOnline] = useState(typeof navigator === "undefined" ? true : navigator.onLine);
@@ -64,6 +64,8 @@ export function StudentExamsPage({ token }: { token: string | null }) {
   const [notice, setNotice] = useState("");
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const flushRef = useRef<() => Promise<boolean>>(async () => true);
+  const submitRef = useRef<() => Promise<void>>(async () => {});
+  const batchIdRef = useRef("");
 
   const loadExams = useCallback(async () => {
     if (!token) {
@@ -87,7 +89,7 @@ export function StudentExamsPage({ token }: { token: string | null }) {
   const flush = useCallback(async () => {
     if (!attempt || !sessionToken || !token) return false;
     const batch = Object.values(pendingAnswers);
-    if (!batch.length) return true;
+    if (!batch.length) { batchIdRef.current = ""; return true; }
     if (!navigator.onLine) {
       setOnline(false);
       return false;
@@ -98,9 +100,10 @@ export function StudentExamsPage({ token }: { token: string | null }) {
         method: "POST",
         token,
         headers: { "x-attempt-session": sessionToken },
-        body: JSON.stringify({ clientBatchId: crypto.randomUUID(), answers: batch }),
+        body: JSON.stringify({ clientBatchId: batchIdRef.current || (batchIdRef.current = crypto.randomUUID()), answers: batch }),
       });
-      setServerOffset(new Date(result.serverTime).getTime() - Date.now());
+      if (attempt) setRemainingSeconds(Math.max(0, Math.ceil((Date.parse(attempt.deadlineAt) - Date.parse(result.serverTime)) / 1000)));
+      batchIdRef.current = "";
       if (result.acceptedCount === 0 && result.rejectedCount > 0) {
         setError("Server menolak jawaban yang dikirim. Sambungkan ulang sesi untuk memuat status terakhir.");
         return false;
@@ -142,7 +145,7 @@ export function StudentExamsPage({ token }: { token: string | null }) {
   }, [attempt, pendingAnswers]);
 
   useEffect(() => {
-    if (!attempt) return;
+    if (!attempt?.id) return;
     const interval = window.setInterval(() => { void flushRef.current(); }, 10000);
     const onOnline = () => { setOnline(true); void flushRef.current(); };
     const onOffline = () => setOnline(false);
@@ -156,15 +159,11 @@ export function StudentExamsPage({ token }: { token: string | null }) {
   }, [attempt?.id]);
 
   useEffect(() => {
-    if (!attempt) return;
-    const interval = window.setInterval(() => setClockTick((value) => value + 1), 1000);
+    if (!attempt?.id) return;
+    const interval = window.setInterval(() => setRemainingSeconds((value) => Math.max(0, value - 1)), 1000);
     return () => window.clearInterval(interval);
   }, [attempt?.id]);
 
-  const remainingSeconds = attempt
-    ? Math.max(0, Math.ceil((new Date(attempt.deadlineAt).getTime() - (Date.now() + serverOffset)) / 1000))
-    : 0;
-  void clockTick;
 
   async function startExam(exam: StudentExam) {
     if (!token) return;
@@ -188,7 +187,9 @@ export function StudentExamsPage({ token }: { token: string | null }) {
       setAttempt(attemptState);
       setSessionToken(result.sessionToken);
       window.sessionStorage.setItem(`nebula-cbt-session:${result.attemptId}`, result.sessionToken);
-      setServerOffset(new Date(result.serverTime).getTime() - Date.now());
+      const initialSeconds = Math.max(0, Math.ceil((Date.parse(result.deadlineAt) - Date.parse(result.serverTime)) / 1000));
+      setInitialRemainingSeconds(initialSeconds);
+      setRemainingSeconds(initialSeconds);
       const serverAnswers: Record<string, Answer> = {};
       for (const answer of result.answers ?? []) serverAnswers[answer.questionId] = { answerData: answer.answerData, answerVersion: answer.answerVersion };
       let localPending: PendingAnswer[] = [];
@@ -252,9 +253,13 @@ export function StudentExamsPage({ token }: { token: string | null }) {
     }
   }
 
+  useEffect(() => { submitRef.current = submitAttempt; }, [submitAttempt]);
+
   useEffect(() => {
-    if (attempt && remainingSeconds === 0 && !submitting) void submitAttempt();
-  }, [attempt?.id, remainingSeconds, submitting]);
+    if (!attempt?.id) return;
+    const timeout = window.setTimeout(() => { void submitRef.current(); }, initialRemainingSeconds * 1000);
+    return () => window.clearTimeout(timeout);
+  }, [attempt?.id]);
 
   const currentQuestion = attempt?.questions[currentIndex];
   const currentAnswer = currentQuestion ? answers[currentQuestion.id]?.answerData ?? {} : {};
