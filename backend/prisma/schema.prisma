@@ -70,6 +70,7 @@ model User {
   auditLogs                    AuditLog[]
   updatedSystemSettings        SystemSetting[]
   updatedDocumentSettings      SchoolDocumentSetting[]       @relation("DocumentSettingUpdater")
+  manualQuestionGrades         ManualQuestionGrade[]
   createdGradingScales         GradingScale[]
 
   @@map("users")
@@ -683,6 +684,7 @@ model AttemptAnswer {
 
   attempt           Attempt           @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   examPaperQuestion ExamPaperQuestion @relation(fields: [examPaperQuestionId], references: [id], onDelete: Restrict)
+  manualGrade       ManualQuestionGrade?
 
   @@unique([attemptId, examPaperQuestionId])
   @@index([attemptId, receivedAt])
@@ -791,6 +793,7 @@ model ExamResult {
   subject             Subject               @relation(fields: [subjectId], references: [id], onDelete: Restrict)
   gradedBy            User?                 @relation(fields: [gradedById], references: [id], onDelete: Restrict)
   adjustments         ScoreAdjustmentItem[]
+  manualGrades        ManualQuestionGrade[]
   gradingScaleLevelId String?               @db.Uuid
   gradingScaleLevel   GradingScaleLevel?    @relation(fields: [gradingScaleLevelId], references: [id], onDelete: SetNull)
 
@@ -1229,4 +1232,24 @@ model GradingScaleLevel {
   @@unique([gradingScaleId, label])
   @@unique([gradingScaleId, sortOrder])
   @@map("grading_scale_levels")
+}
+
+
+model ManualQuestionGrade {
+  id             String   @id @default(uuid()) @db.Uuid
+  examResultId   String   @db.Uuid
+  attemptAnswerId String  @unique @db.Uuid
+  gradedById     String   @db.Uuid
+  score          Decimal  @db.Decimal(8, 2)
+  feedback       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  examResult   ExamResult   @relation(fields: [examResultId], references: [id], onDelete: Cascade)
+  attemptAnswer AttemptAnswer @relation(fields: [attemptAnswerId], references: [id], onDelete: Cascade)
+  gradedBy     User         @relation(fields: [gradedById], references: [id], onDelete: Restrict)
+
+  @@index([examResultId])
+  @@index([gradedById])
+  @@map("manual_question_grades")
 }
