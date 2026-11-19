@@ -60,7 +60,7 @@ export function DashboardPage({
   useEffect(() => {
     if (!token) return;
     let active = true;
-    void apiRequest<InstitutionBrand>("/academic/education-settings", { token })
+    void apiRequest<InstitutionBrand>("/academic/branding", { token })
       .then((value) => { if (active) setInstitution(value); })
       .catch(() => undefined);
     return () => { active = false; };
