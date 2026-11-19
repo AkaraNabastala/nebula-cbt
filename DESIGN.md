@@ -23,7 +23,7 @@ ENERGY 2 / RHYTHM 2 / MOTION 1.
 - Role dashboards render only the current user's relevant overview.
 - Visible navigation points only to implemented, role-appropriate screens; unfinished capabilities are not presented as active controls.
 - The workspace header remains sticky at the top during scrolling, while the desktop sidebar stays independently anchored.
-- Mobile workspace navigation uses a compact disclosure menu instead of squeezing the desktop navigation row.
+- Mobile workspace navigation uses a left-side drawer opened by a hamburger control, with a dimmed and lightly blurred backdrop. Escape and backdrop taps close it, and background scrolling is locked while open.
 
 
 ## Information architecture refinement
