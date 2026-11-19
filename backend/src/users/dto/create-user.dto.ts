@@ -1,5 +1,4 @@
 import {
-  IsEmail,
   IsIn,
   IsString,
   MaxLength,
