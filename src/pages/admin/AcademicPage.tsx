@@ -173,7 +173,8 @@ export function AcademicPage({ token }: { token: string | null }) {
               <button type="submit" disabled={saving || (tab === "classes" && years.length === 0)} className="min-h-10 rounded-lg bg-app-primary px-4 text-sm font-semibold text-app-primary-contrast hover:bg-app-primary-hover disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Menyimpan..." : "Simpan"}</button>
             </div>
           </form>
-        </div>\n      </dialog>}
+        </div>
+      </dialog>}
     </section>
   );
 }
