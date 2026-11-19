@@ -1,15 +1,18 @@
+import { useEffect, useState } from "react";
 import {
+  BookOpen,
+  ClipboardList,
+  GraduationCap,
   LayoutDashboard,
   LogOut,
+  Menu,
   ShieldCheck,
   UserRound,
   Users,
-  GraduationCap,
-  BookOpen,
-  ClipboardList,
-  Settings,
+  X,
 } from "lucide-react";
 import type { AuthUser } from "../../contexts/AuthContext";
+import { apiRequest } from "../../lib/api";
 import { Brand } from "../../components/shared/Brand";
 import { AccountPage } from "../account/AccountPage";
 import { AdminDashboardPage } from "../admin/DashboardPage";
@@ -23,38 +26,16 @@ import { StudentExamsPage } from "../siswa/StudentExamsPage";
 import { ResultsPage } from "../guru/ResultsPage";
 import { PeopleManagementPage } from "../admin/PeopleManagementPage";
 import { AuditLogsPage } from "../admin/AuditLogsPage";
-import { EducationSettingsPage } from "../admin/EducationSettingsPage";
 
-export type DashboardSection = "dashboard" | "account" | "users" | "academicYears" | "academicSubjects" | "academicClasses" | "questions" | "exams" | "results" | "enrollments" | "teacherAssignments" | "audit" | "educationSettings";
+export type DashboardSection = "dashboard" | "account" | "users" | "academicYears" | "academicSubjects" | "academicClasses" | "questions" | "exams" | "results" | "enrollments" | "teacherAssignments" | "audit";
 
-const roleDetails: Record<string, {
-  label: string;
-  title: string;
-  description: string;
-}> = {
-  ADMIN: {
-    label: "Administrator",
-    title: "Ruang kendali sistem",
-    description: "Area pengelolaan data peserta, struktur akademik, dan operasional ujian.",
-  },
-  TEACHER: {
-    label: "Guru",
-    title: "Ruang kerja pengajar",
-    description: "Area kerja untuk persiapan pembelajaran dan pengelolaan asesmen.",
-  },
-  STUDENT: {
-    label: "Peserta didik",
-    title: "Ruang ujian peserta",
-    description: "Area peserta untuk mengakses aktivitas ujian dan informasi akademik.",
-  },
+type InstitutionBrand = { institutionName?: string; logoDataUrl?: string };
+
+const roleDetails: Record<string, { label: string }> = {
+  ADMIN: { label: "Admin" },
+  TEACHER: { label: "Guru" },
+  STUDENT: { label: "Siswa" },
 };
-
-function getPrimaryRole(roles: string[]): string {
-  for (const role of ["ADMIN", "TEACHER", "STUDENT"]) {
-    if (roles.includes(role)) return role;
-  }
-  return roles[0] || "USER";
-}
 
 export function DashboardPage({
   user,
@@ -71,143 +52,143 @@ export function DashboardPage({
   onLogout: () => Promise<void>;
   onChangePassword: () => void;
 }) {
-  const role = getPrimaryRole(user.roles);
-  const detail = roleDetails[role] || {
-    label: role,
-    title: "Ruang kerja pengguna",
-    description: "Selamat datang di Nebula CBT.",
-  };
+  const role = user.roles.includes("ADMIN") ? "ADMIN" : user.roles.includes("TEACHER") ? "TEACHER" : "STUDENT";
+  const detail = roleDetails[role] ?? { label: "User" };
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [institution, setInstitution] = useState<InstitutionBrand>({});
+
+  useEffect(() => {
+    if (!token) return;
+    let active = true;
+    void apiRequest<InstitutionBrand>("/academic/education-settings", { token })
+      .then((value) => { if (active) setInstitution(value); })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, [token]);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [mobileOpen]);
 
   const pageLabels: Record<DashboardSection, string> = {
-    dashboard: "Ringkasan",
-    account: "Akun saya",
-    users: "Akun pengguna",
-    academicYears: "Tahun ajaran",
-    academicSubjects: "Mapel / mata kuliah",
-    academicClasses: "Kelas",
-    questions: "Bank soal",
-    exams: role === "STUDENT" ? "Ujian saya" : "Operasional ujian",
-    results: "Penilaian dan hasil",
-    enrollments: "Penempatan siswa",
-    teacherAssignments: "Penugasan guru",
+    dashboard: "Overview",
+    account: "Account",
+    users: "User accounts",
+    academicYears: "Academic years",
+    academicSubjects: "Subjects",
+    academicClasses: "Classes",
+    questions: "Question bank",
+    exams: role === "STUDENT" ? "My exams" : "Exams",
+    results: "Results",
+    enrollments: "Student groups",
+    teacherAssignments: "Teacher assignments",
     audit: "Audit log",
-    educationSettings: "Struktur pendidikan",
   };
 
   const navClass = (active: boolean) =>
-    `flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary ${active ? "bg-app-soft text-app-primary" : "text-app-muted hover:bg-app-bg hover:text-app-text"}`;
+    `flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary ${active ? "bg-app-soft text-app-primary" : "text-app-muted hover:bg-app-bg hover:text-app-text"}`;
+
+  const go = (next: DashboardSection) => {
+    setPage(next);
+    setMobileOpen(false);
+  };
+
+  const navigation = (
+    <nav aria-label="Main navigation" className="space-y-5">
+      <button type="button" onClick={() => go("dashboard")} aria-current={page === "dashboard" ? "page" : undefined} className={navClass(page === "dashboard")}>
+        <LayoutDashboard size={17} /> Overview
+      </button>
+
+      {(role === "ADMIN" || role === "TEACHER") && (
+        <section>
+          <p className="mb-2 px-3 text-[11px] font-semibold text-app-muted">CBT</p>
+          <div className="space-y-1">
+            <button type="button" onClick={() => go("questions")} aria-current={page === "questions" ? "page" : undefined} className={navClass(page === "questions")}><BookOpen size={17} /> Question bank</button>
+            <button type="button" onClick={() => go("exams")} aria-current={page === "exams" ? "page" : undefined} className={navClass(page === "exams")}><ClipboardList size={17} /> Exams</button>
+            <button type="button" onClick={() => go("results")} aria-current={page === "results" ? "page" : undefined} className={navClass(page === "results")}><GraduationCap size={17} /> Results</button>
+          </div>
+        </section>
+      )}
+
+      {role === "STUDENT" && <button type="button" onClick={() => go("exams")} aria-current={page === "exams" ? "page" : undefined} className={navClass(page === "exams")}><ClipboardList size={17} /> My exams</button>}
+
+      {role === "ADMIN" && (
+        <>
+          <section>
+            <p className="mb-2 px-3 text-[11px] font-semibold text-app-muted">Users</p>
+            <div className="space-y-1">
+              <button type="button" onClick={() => go("users")} aria-current={page === "users" ? "page" : undefined} className={navClass(page === "users")}><Users size={17} /> User accounts</button>
+              <button type="button" onClick={() => go("enrollments")} aria-current={page === "enrollments" ? "page" : undefined} className={navClass(page === "enrollments")}><Users size={17} /> Student groups</button>
+              <button type="button" onClick={() => go("teacherAssignments")} aria-current={page === "teacherAssignments" ? "page" : undefined} className={navClass(page === "teacherAssignments")}><GraduationCap size={17} /> Teacher assignments</button>
+            </div>
+          </section>
+          <section>
+            <p className="mb-2 px-3 text-[11px] font-semibold text-app-muted">Academic</p>
+            <div className="space-y-1">
+              <button type="button" onClick={() => go("academicYears")} aria-current={page === "academicYears" ? "page" : undefined} className={navClass(page === "academicYears")}><GraduationCap size={17} /> Academic years</button>
+              <button type="button" onClick={() => go("academicClasses")} aria-current={page === "academicClasses" ? "page" : undefined} className={navClass(page === "academicClasses")}><Users size={17} /> Classes</button>
+              <button type="button" onClick={() => go("academicSubjects")} aria-current={page === "academicSubjects" ? "page" : undefined} className={navClass(page === "academicSubjects")}><BookOpen size={17} /> Subjects</button>
+            </div>
+          </section>
+          <section>
+            <p className="mb-2 px-3 text-[11px] font-semibold text-app-muted">System</p>
+            <button type="button" onClick={() => go("audit")} aria-current={page === "audit" ? "page" : undefined} className={navClass(page === "audit")}><ShieldCheck size={17} /> Audit log</button>
+          </section>
+        </>
+      )}
+      <section className="border-t border-app-border pt-3">
+        <button type="button" onClick={() => go("account")} aria-current={page === "account" ? "page" : undefined} className={navClass(page === "account")}><UserRound size={17} /> Account</button>
+      </section>
+    </nav>
+  );
 
   return (
     <div className="min-h-dvh bg-app-bg lg:flex">
-      <aside className="sticky top-0 hidden h-dvh w-[252px] shrink-0 flex-col overflow-y-auto border-r-2 border-r-[#318BCB]/30 bg-app-surface px-4 py-5 lg:flex">
-        <Brand />
-        <div className="mt-10">
-          <p className="mb-3 px-3 text-[10px] font-semibold tracking-[0.15em] text-app-muted">WORKSPACE</p>
-          <nav aria-label="Navigasi utama" className="space-y-2">
-            <button type="button" onClick={() => setPage("dashboard")} aria-current={page === "dashboard" ? "page" : undefined} className={navClass(page === "dashboard")}>
-              <LayoutDashboard size={17} /> Ringkasan
-            </button>
-            {(role === "ADMIN" || role === "TEACHER") && <details className="group rounded-lg" open={["questions", "exams", "results"].includes(page)}>
-              <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-xs font-semibold text-app-muted hover:bg-app-bg hover:text-app-text">
-                <span>Asesmen</span><span aria-hidden="true" className="text-app-muted transition-transform group-open:rotate-90">›</span>
-              </summary>
-              <div className="mt-1 space-y-1 pl-2">
-                <button type="button" onClick={() => setPage("questions")} aria-current={page === "questions" ? "page" : undefined} className={navClass(page === "questions")}><BookOpen size={16} /> Bank soal</button>
-                <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={navClass(page === "exams")}><ClipboardList size={16} /> Operasional ujian</button>
-                <button type="button" onClick={() => setPage("results")} aria-current={page === "results" ? "page" : undefined} className={navClass(page === "results")}><GraduationCap size={16} /> Penilaian dan hasil</button>
-              </div>
-            </details>}
-            {role === "STUDENT" && <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={navClass(page === "exams")}><ClipboardList size={17} /> Ujian saya</button>}
-            {role === "ADMIN" && <details className="group rounded-lg" open={["academicYears", "academicSubjects", "academicClasses", "users", "enrollments", "teacherAssignments"].includes(page)}>
-              <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-xs font-semibold text-app-muted hover:bg-app-bg hover:text-app-text">
-                <span>Data & peserta</span><span aria-hidden="true" className="text-app-muted transition-transform group-open:rotate-90">›</span>
-              </summary>
-              <div className="mt-1 space-y-1 pl-2">
-                <div className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-app-muted">Akademik</div>
-                <button type="button" onClick={() => setPage("academicYears")} aria-current={page === "academicYears" ? "page" : undefined} className={navClass(page === "academicYears")}><GraduationCap size={16} /> Tahun ajaran</button>
-                <button type="button" onClick={() => setPage("academicSubjects")} aria-current={page === "academicSubjects" ? "page" : undefined} className={navClass(page === "academicSubjects")}><BookOpen size={16} /> Mapel / mata kuliah</button>
-                <button type="button" onClick={() => setPage("academicClasses")} aria-current={page === "academicClasses" ? "page" : undefined} className={navClass(page === "academicClasses")}><Users size={16} /> Kelas</button>
-                <button type="button" onClick={() => setPage("users")} aria-current={page === "users" ? "page" : undefined} className={navClass(page === "users")}><Users size={16} /> Akun pengguna</button>
-                <button type="button" onClick={() => setPage("enrollments")} aria-current={page === "enrollments" ? "page" : undefined} className={navClass(page === "enrollments")}><Users size={16} /> Penempatan siswa</button>
-                <button type="button" onClick={() => setPage("teacherAssignments")} aria-current={page === "teacherAssignments" ? "page" : undefined} className={navClass(page === "teacherAssignments")}><GraduationCap size={16} /> Penugasan guru</button>
-
-              </div>
-            </details>}
-            {role === "ADMIN" && <details className="group rounded-lg" open={page === "audit" || page === "educationSettings"}>
-              <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-xs font-semibold text-app-muted hover:bg-app-bg hover:text-app-text"><span>Sistem</span><span aria-hidden="true" className="text-app-muted transition-transform group-open:rotate-90">›</span></summary>
-              <div className="mt-1 space-y-1 pl-2">
-                <button type="button" onClick={() => setPage("educationSettings")} aria-current={page === "educationSettings" ? "page" : undefined} className={navClass(page === "educationSettings")}><Settings size={16} /> Struktur pendidikan</button>
-                <button type="button" onClick={() => setPage("audit")} aria-current={page === "audit" ? "page" : undefined} className={navClass(page === "audit")}><ShieldCheck size={16} /> Audit log</button>
-              </div>
-            </details>}
-            <button type="button" onClick={() => setPage("account")} aria-current={page === "account" ? "page" : undefined} className={navClass(page === "account")}>
-              <UserRound size={17} /> Akun saya
-            </button>
-          </nav>
-        </div>
-        <div className="mt-auto rounded-xl border border-app-border bg-app-bg p-4">
-          <div className="flex items-center gap-2 text-app-text"><ShieldCheck size={16} /><span className="text-xs font-semibold">{detail.label}</span></div>
-          <p className="mt-2 break-all text-[11px] leading-5 text-app-muted">{user.fullName}</p>
+      <aside className="sticky top-0 hidden h-dvh w-[256px] shrink-0 flex-col border-r border-app-border bg-app-surface px-4 py-5 lg:flex">
+        <Brand institutionName={institution.institutionName} logoDataUrl={institution.logoDataUrl} />
+        <div className="mt-9 flex-1 overflow-y-auto">{navigation}</div>
+        <div className="mt-4 border-t border-app-border px-3 pt-4">
+          <p className="truncate text-sm font-semibold text-app-text">{user.fullName}</p>
+          <p className="mt-1 text-xs text-app-muted">{detail.label}</p>
         </div>
       </aside>
 
       <div className="min-w-0 flex-1">
-        <header className="sticky top-0 z-40 flex min-h-16 items-center justify-between gap-4 border-b border-app-border bg-app-surface px-5 shadow-sm sm:px-7">
-          <div className="flex items-center gap-3 lg:hidden"><Brand compact /><span className="text-sm font-bold text-app-text">Nebula CBT</span></div>
-          <div className="hidden text-xs text-app-muted lg:block">
-            Workspace <span className="mx-2">/</span>
-            <span className="font-medium text-app-text">
-              {pageLabels[page]}
-            </span>
-          </div>
-          <div className="ml-auto flex items-center gap-3">
-            <div className="hidden text-right sm:block"><p className="text-xs font-semibold text-app-text">{user.fullName}</p><p className="mt-1 text-[11px] text-app-muted">{detail.label}</p></div>
-            <button type="button" onClick={() => void onLogout()} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-app-border px-3 text-xs font-semibold text-app-text hover:bg-app-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary">
-              <LogOut size={15} /><span className="hidden sm:inline">Keluar</span>
+        <header className="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-app-border bg-app-surface px-4 sm:px-7">
+          <button type="button" onClick={() => setMobileOpen(true)} aria-label="Open navigation" aria-expanded={mobileOpen} aria-controls="mobile-workspace-navigation" className="inline-flex size-11 items-center justify-center rounded-lg text-app-text hover:bg-app-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary lg:hidden">
+            <Menu size={21} />
+          </button>
+          <div className="lg:hidden"><Brand compact institutionName={institution.institutionName} logoDataUrl={institution.logoDataUrl} /></div>
+          <div className="hidden text-xs text-app-muted lg:block">Workspace <span className="mx-2">/</span><span className="font-medium text-app-text">{pageLabels[page]}</span></div>
+          <div className="ml-auto flex min-w-0 items-center gap-3">
+            <div className="hidden min-w-0 text-right sm:block"><p className="max-w-52 truncate text-xs font-semibold text-app-text">{user.fullName}</p><p className="mt-1 text-[11px] text-app-muted">{detail.label}</p></div>
+            <button type="button" onClick={() => void onLogout()} className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-app-border px-3 text-xs font-semibold text-app-text hover:bg-app-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary">
+              <LogOut size={15} /><span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </header>
 
-        <details className="border-b border-app-border bg-app-surface lg:hidden">
-          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-5 text-xs font-semibold text-app-text hover:bg-app-bg active:bg-app-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-app-primary">
-            <span>Menu workspace</span>
-            <span className="font-normal text-app-muted">{pageLabels[page]}</span>
-          </summary>
-          <nav aria-label="Navigasi utama seluler" onClick={(event) => { if ((event.target as HTMLElement).closest("button")) { const menu = event.currentTarget.closest("details") as HTMLDetailsElement | null; if (menu) menu.open = false; } }} className="space-y-1 px-4 pb-3">
-            <button type="button" onClick={() => setPage("dashboard")} aria-current={page === "dashboard" ? "page" : undefined} className={navClass(page === "dashboard")}><LayoutDashboard size={16} /> Ringkasan</button>
-            {(role === "ADMIN" || role === "TEACHER") && <details className="group rounded-lg">
-              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-sm font-semibold text-app-muted hover:bg-app-bg hover:text-app-text"><span>Asesmen</span><span aria-hidden="true">›</span></summary>
-              <div className="space-y-1 pl-3">
-                <button type="button" onClick={() => setPage("questions")} aria-current={page === "questions" ? "page" : undefined} className={navClass(page === "questions")}><BookOpen size={16} /> Bank soal</button>
-                <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={navClass(page === "exams")}><ClipboardList size={16} /> Operasional ujian</button>
-                <button type="button" onClick={() => setPage("results")} aria-current={page === "results" ? "page" : undefined} className={navClass(page === "results")}><GraduationCap size={16} /> Penilaian dan hasil</button>
+        {mobileOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <button type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)} className="absolute inset-0 cursor-default bg-slate-950/45 backdrop-blur-[2px]" />
+            <aside id="mobile-workspace-navigation" className="absolute inset-y-0 left-0 flex w-[min(86vw,320px)] flex-col border-r border-app-border bg-app-surface px-4 py-5 shadow-2xl transition-transform duration-200">
+              <div className="mb-8 flex items-center justify-between gap-3">
+                <Brand institutionName={institution.institutionName} logoDataUrl={institution.logoDataUrl} />
+                <button type="button" onClick={() => setMobileOpen(false)} aria-label="Close navigation" className="inline-flex size-10 items-center justify-center rounded-lg text-app-muted hover:bg-app-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"><X size={20} /></button>
               </div>
-            </details>}
-            {role === "STUDENT" && <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={navClass(page === "exams")}><ClipboardList size={16} /> Ujian saya</button>}
-            {role === "ADMIN" && <details className="group rounded-lg">
-              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-sm font-semibold text-app-muted hover:bg-app-bg hover:text-app-text"><span>Data & peserta</span><span aria-hidden="true">›</span></summary>
-              <div className="space-y-1 pl-3">
-                <p className="px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wider text-app-muted">Akademik</p>
-                <button type="button" onClick={() => setPage("academicYears")} aria-current={page === "academicYears" ? "page" : undefined} className={navClass(page === "academicYears")}>Tahun ajaran</button>
-                <button type="button" onClick={() => setPage("academicSubjects")} aria-current={page === "academicSubjects" ? "page" : undefined} className={navClass(page === "academicSubjects")}>Mapel / mata kuliah</button>
-                <button type="button" onClick={() => setPage("academicClasses")} aria-current={page === "academicClasses" ? "page" : undefined} className={navClass(page === "academicClasses")}>Kelas</button>
-                <p className="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-wider text-app-muted">Pengelolaan</p>
-                <button type="button" onClick={() => setPage("users")} aria-current={page === "users" ? "page" : undefined} className={navClass(page === "users")}><Users size={16} /> Akun pengguna</button>
-                <button type="button" onClick={() => setPage("enrollments")} aria-current={page === "enrollments" ? "page" : undefined} className={navClass(page === "enrollments")}><Users size={16} /> Penempatan siswa</button>
-                <button type="button" onClick={() => setPage("teacherAssignments")} aria-current={page === "teacherAssignments" ? "page" : undefined} className={navClass(page === "teacherAssignments")}><GraduationCap size={16} /> Penugasan guru</button>
-
+              <div className="min-h-0 flex-1 overflow-y-auto">{navigation}</div>
+              <div className="mt-4 border-t border-app-border px-3 pt-4">
+                <p className="truncate text-sm font-semibold text-app-text">{user.fullName}</p>
+                <p className="mt-1 text-xs text-app-muted">{detail.label}</p>
               </div>
-            </details>}
-            {role === "ADMIN" && <details className="group rounded-lg">
-              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-sm font-semibold text-app-muted hover:bg-app-bg hover:text-app-text"><span>Sistem</span><span aria-hidden="true">›</span></summary>
-              <div className="space-y-1 pl-3">
-                <button type="button" onClick={() => setPage("educationSettings")} aria-current={page === "educationSettings" ? "page" : undefined} className={navClass(page === "educationSettings")}><Settings size={16} /> Struktur pendidikan</button>
-                <button type="button" onClick={() => setPage("audit")} aria-current={page === "audit" ? "page" : undefined} className={navClass(page === "audit")}><ShieldCheck size={16} /> Audit log</button>
-              </div>
-            </details>}
-            <button type="button" onClick={() => setPage("account")} aria-current={page === "account" ? "page" : undefined} className={navClass(page === "account")}><UserRound size={16} /> Akun saya</button>
-          </nav>
-        </details>
+            </aside>
+          </div>
+        )}
 
         <main className="mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-7 sm:py-7">
           {page === "account" ? <AccountPage user={user} onChangePassword={onChangePassword} />
@@ -215,22 +196,19 @@ export function DashboardPage({
               : page === "academicYears" && role === "ADMIN" ? <AcademicPage token={token} section="years" />
                 : page === "academicSubjects" && role === "ADMIN" ? <AcademicPage token={token} section="subjects" />
                   : page === "academicClasses" && role === "ADMIN" ? <AcademicPage token={token} section="classes" />
-                : page === "questions" && (role === "ADMIN" || role === "TEACHER") ? <QuestionsPage token={token} />
-                  : page === "exams" && (role === "ADMIN" || role === "TEACHER") ? <ExamOperationsPage token={token} />
-                    : page === "exams" && role === "STUDENT" ? <StudentExamsPage token={token} />
-                      : page === "results" && (role === "ADMIN" || role === "TEACHER") ? <ResultsPage token={token} />
-                    : page === "enrollments" && role === "ADMIN" ? <PeopleManagementPage token={token} section="enrollments" />
-                      : page === "teacherAssignments" && role === "ADMIN" ? <PeopleManagementPage token={token} section="teacherAssignments" />
-                      : page === "audit" && role === "ADMIN" ? <AuditLogsPage token={token} />
-                      : page === "educationSettings" && role === "ADMIN" ? <EducationSettingsPage token={token} />
-                    : role === "ADMIN" ? <AdminDashboardPage user={user} detail={detail} />
-                    : role === "TEACHER" ? <GuruDashboardPage user={user} detail={detail} />
-                      : <SiswaDashboardPage user={user} detail={detail} />}
+                    : page === "questions" && (role === "ADMIN" || role === "TEACHER") ? <QuestionsPage token={token} />
+                      : page === "exams" && (role === "ADMIN" || role === "TEACHER") ? <ExamOperationsPage token={token} />
+                        : page === "exams" && role === "STUDENT" ? <StudentExamsPage token={token} />
+                          : page === "results" && (role === "ADMIN" || role === "TEACHER") ? <ResultsPage token={token} />
+                            : page === "enrollments" && role === "ADMIN" ? <PeopleManagementPage token={token} section="enrollments" />
+                              : page === "teacherAssignments" && role === "ADMIN" ? <PeopleManagementPage token={token} section="teacherAssignments" />
+                                : page === "audit" && role === "ADMIN" ? <AuditLogsPage token={token} />
+                                  : role === "ADMIN" ? <AdminDashboardPage user={user} detail={{ label: detail.label, title: "Overview", description: "CBT workspace" }} />
+                                    : role === "TEACHER" ? <GuruDashboardPage user={user} detail={{ label: detail.label, title: "Teaching workspace", description: "Your CBT workspace" }} />
+                                      : <SiswaDashboardPage user={user} detail={{ label: detail.label, title: "Student workspace", description: "Your exams and results" }} />}
         </main>
 
-        <footer className="border-t border-app-border px-5 py-5 text-center text-[11px] text-app-muted sm:px-8">
-          Nebula CBT <span className="mx-1">·</span> AkaraNabastala
-        </footer>
+        <footer className="border-t border-app-border px-5 py-5 text-center text-[11px] text-app-muted sm:px-8">Nebula CBT <span className="mx-1">·</span> AkaraNabastala</footer>
       </div>
     </div>
   );
