@@ -2,11 +2,14 @@ import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
+import { json, urlencoded } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import { AppModule } from './app.module.js';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bodyParser: false });
+  app.use(json({ limit: '500kb' }));
+  app.use(urlencoded({ extended: true, limit: '500kb' }));
   const logger = new Logger('HTTP');
 
   app.use((request: import('express').Request, response: import('express').Response, next: import('express').NextFunction) => {

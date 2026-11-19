@@ -19,6 +19,20 @@ export class AcademicController {
     return { id: request.user!.id, ipAddress: request.ip, userAgent: request.get('user-agent') };
   }
 
+  @Get('branding')
+  @RequirePermissions('dashboard.read')
+  getInstitutionBranding() { return this.academic.getInstitutionBranding(); }
+
+  @Get('education-settings')
+  @RequirePermissions('academic_years.read')
+  getEducationSettings() { return this.academic.getEducationSettings(); }
+
+  @Patch('education-settings')
+  @RequirePermissions('academic_years.manage')
+  updateEducationSettings(@Body() body: unknown, @Req() req: AuthenticatedRequest) {
+    return this.academic.updateEducationSettings(body, this.actor(req));
+  }
+
   @Get('years')
   @RequirePermissions('academic_years.read')
   listYears() { return this.academic.listYears(); }

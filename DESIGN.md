@@ -23,15 +23,19 @@ ENERGY 2 / RHYTHM 2 / MOTION 1.
 - Role dashboards render only the current user's relevant overview.
 - Visible navigation points only to implemented, role-appropriate screens; unfinished capabilities are not presented as active controls.
 - The workspace header remains sticky at the top during scrolling, while the desktop sidebar stays independently anchored.
-- Mobile workspace navigation uses a compact disclosure menu instead of squeezing the desktop navigation row.
+- Mobile workspace navigation uses a left-side drawer opened by a hamburger control, with a dimmed and lightly blurred backdrop. Escape and backdrop taps close it, and background scrolling is locked while open.
 
 
 ## Information architecture refinement
 - A screen owns one primary administrative task. Academic years, subjects, and classes are separate destinations rather than tabs inside one mixed page.
 - Student enrollment and teacher assignment are separate destinations because they have different actors, inputs, and lifecycle actions.
-- Sidebar groups follow the user's work: Asesmen, Administrasi sekolah, and Sistem. Account settings remain a distinct destination.
-- Desktop uses a compact, persistent sidebar; mobile uses nested disclosure groups so navigation does not become a wall of buttons.
+- Sidebar groups follow the user's work: Users, Academic, CBT, and System. Account settings remain a distinct destination.
+- Desktop uses a compact, persistent sidebar; mobile uses the same groups inside a left-side drawer.
 - Each data page has one clear heading, a short explanation, its primary action, and one focused list. Creation forms live in dialogs, not stacked inline panels.
+
+## Initial setup
+- Institution identity, optional logo, education level, and optional departments are collected in a one-time setup screen before the admin workspace opens.
+- The education level is locked after setup; the setup screen is not exposed as a routine navigation destination.
 
 ## Dialog behavior
 - Native modal dialogs are centered in the viewport at all breakpoints.

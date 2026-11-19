@@ -4,8 +4,9 @@ import { toast } from "sonner";
 import { apiRequest } from "../../lib/api";
 
 type AcademicYear = { id: string; name: string; startDate: string; endDate: string; isActive: boolean; _count?: { classes: number } };
-type Subject = { id: string; code: string | null; name: string; isActive: boolean; _count?: { teacherAssignments: number; questionBanks: number } };
-type SchoolClass = { id: string; name: string; gradeLevel: number; academicYearId: string; academicYear: { id: string; name: string; isActive: boolean }; _count?: { enrollments: number; teacherAssignments: number } };
+type Subject = { id: string; code: string | null; name: string; category: string; isActive: boolean; _count?: { teacherAssignments: number; questionBanks: number } };
+type EducationSettings = { departmentsEnabled: boolean; departments: string[] };
+type SchoolClass = { id: string; name: string; gradeLevel: number; departmentName: string | null; academicYearId: string; academicYear: { id: string; name: string; isActive: boolean }; _count?: { enrollments: number; teacherAssignments: number } };
 
 export type AcademicSection = "years" | "subjects" | "classes";
 
@@ -17,8 +18,8 @@ const sectionCopy: Record<AcademicSection, { title: string; description: string;
     empty: "Belum ada tahun ajaran. Tambahkan periode akademik pertama untuk mulai mengelola kelas.",
   },
   subjects: {
-    title: "Mata pelajaran",
-    description: "Kelola daftar mata pelajaran yang digunakan pada kelas, penugasan guru, dan bank soal.",
+    title: "Mata pelajaran / mata kuliah",
+    description: "Kelola mata pelajaran atau mata kuliah untuk penugasan pengajar, bank soal, dan ujian.",
     addLabel: "Tambah mata pelajaran",
     empty: "Belum ada mata pelajaran. Tambahkan mata pelajaran untuk mulai menyiapkan pembelajaran.",
   },
@@ -38,6 +39,7 @@ export function AcademicPage({ token, section }: { token: string | null; section
   const [years, setYears] = useState<AcademicYear[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [classes, setClasses] = useState<SchoolClass[]>([]);
+  const [educationSettings, setEducationSettings] = useState<EducationSettings>({ departmentsEnabled: false, departments: [] });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -54,14 +56,16 @@ export function AcademicPage({ token, section }: { token: string | null; section
     setLoading(true);
     setError("");
     try {
-      const [yearData, subjectData, classData] = await Promise.all([
+      const [yearData, subjectData, classData, educationData] = await Promise.all([
         apiRequest<AcademicYear[]>("/academic/years", { token }),
         apiRequest<Subject[]>("/academic/subjects", { token }),
         apiRequest<SchoolClass[]>("/academic/classes", { token }),
+        apiRequest<EducationSettings>("/academic/education-settings", { token }),
       ]);
       setYears(yearData);
       setSubjects(subjectData);
       setClasses(classData);
+      setEducationSettings({ departmentsEnabled: educationData.departmentsEnabled === true, departments: Array.isArray(educationData.departments) ? educationData.departments : [] });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Data akademik gagal dimuat.");
     } finally {
@@ -87,10 +91,10 @@ export function AcademicPage({ token, section }: { token: string | null; section
       payload = { name: String(form.get("name") || ""), startDate: String(form.get("startDate") || ""), endDate: String(form.get("endDate") || "") };
     } else if (section === "subjects") {
       endpoint = "/academic/subjects";
-      payload = { code: String(form.get("code") || ""), name: String(form.get("name") || "") };
+      payload = { code: String(form.get("code") || ""), name: String(form.get("name") || ""), category: String(form.get("category") || "Umum") };
     } else {
       endpoint = "/academic/classes";
-      payload = { name: String(form.get("name") || ""), gradeLevel: Number(form.get("gradeLevel")), academicYearId: String(form.get("academicYearId") || "") };
+      payload = { name: String(form.get("name") || ""), gradeLevel: Number(form.get("gradeLevel")), academicYearId: String(form.get("academicYearId") || ""), departmentName: String(form.get("departmentName") || "") };
     }
     setSaving(true);
     setError("");
@@ -128,7 +132,7 @@ export function AcademicPage({ token, section }: { token: string | null; section
     <section className="space-y-5">
       <div className="flex flex-col gap-4 rounded-2xl border border-app-border bg-app-surface p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
         <div className="min-w-0">
-          <p className="text-xs font-semibold tracking-[0.12em] text-[#318BCB]">ADMINISTRASI SEKOLAH / AKADEMIK</p>
+          <p className="text-xs font-semibold tracking-[0.12em] text-[#318BCB]">DATA CBT / AKADEMIK</p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-app-text">{copy.title}</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-app-muted">{copy.description}</p>
         </div>
@@ -163,9 +167,9 @@ export function AcademicPage({ token, section }: { token: string | null; section
         {loading ? <div role="status" className="px-4 py-12 text-center text-sm text-app-muted">Memuat data...</div> : section === "years" ? (
           years.length ? <div className="divide-y divide-app-border">{years.map((year) => <div key={year.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-4"><div className="min-w-0"><p className="text-sm font-semibold text-app-text">{year.name}</p><p className="mt-1 text-xs text-app-muted">{dateLabel(year.startDate)} - {dateLabel(year.endDate)} · {year._count?.classes ?? 0} kelas</p></div><div className="flex items-center gap-2">{year.isActive ? <span className="rounded-md bg-emerald-500/10 px-2.5 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-300">Aktif</span> : <button type="button" disabled={saving} onClick={() => void activateYear(year)} className="min-h-9 rounded-md border border-app-border px-3 text-xs font-medium text-app-text hover:bg-app-bg disabled:opacity-50">Jadikan aktif</button>}</div></div>)}</div> : <p className="px-4 py-12 text-center text-sm text-app-muted">{copy.empty}</p>
         ) : section === "subjects" ? (
-          subjects.length ? <div className="divide-y divide-app-border">{subjects.map((subject) => <div key={subject.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-4"><div><p className="text-sm font-semibold text-app-text">{subject.name}</p><p className="mt-1 text-xs text-app-muted">{subject.code || "Tanpa kode"}</p></div><p className="text-xs text-app-muted">{subject._count?.teacherAssignments ?? 0} penugasan · {subject._count?.questionBanks ?? 0} bank soal</p></div>)}</div> : <p className="px-4 py-12 text-center text-sm text-app-muted">{copy.empty}</p>
+          subjects.length ? <div className="divide-y divide-app-border">{subjects.map((subject) => <div key={subject.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-4"><div><p className="text-sm font-semibold text-app-text">{subject.name}</p><p className="mt-1 text-xs text-app-muted">{subject.code || "Tanpa kode"} · {subject.category || "Umum"}</p></div><p className="text-xs text-app-muted">{subject._count?.teacherAssignments ?? 0} penugasan · {subject._count?.questionBanks ?? 0} bank soal</p></div>)}</div> : <p className="px-4 py-12 text-center text-sm text-app-muted">{copy.empty}</p>
         ) : (
-          classes.length ? <div className="divide-y divide-app-border">{classes.map((schoolClass) => <div key={schoolClass.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-4"><div><p className="text-sm font-semibold text-app-text">{schoolClass.name}</p><p className="mt-1 text-xs text-app-muted">Kelas {schoolClass.gradeLevel} · {schoolClass.academicYear.name}</p></div><p className="text-xs text-app-muted">{schoolClass._count?.enrollments ?? 0} siswa</p></div>)}</div> : <p className="px-4 py-12 text-center text-sm text-app-muted">{copy.empty}</p>
+          classes.length ? <div className="divide-y divide-app-border">{classes.map((schoolClass) => <div key={schoolClass.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-4"><div><p className="text-sm font-semibold text-app-text">{schoolClass.name}</p><p className="mt-1 text-xs text-app-muted">Kelas {schoolClass.gradeLevel} · {schoolClass.academicYear.name}{educationSettings.departmentsEnabled && schoolClass.departmentName ? ` · ${schoolClass.departmentName}` : ""}</p></div><p className="text-xs text-app-muted">{schoolClass._count?.enrollments ?? 0} siswa</p></div>)}</div> : <p className="px-4 py-12 text-center text-sm text-app-muted">{copy.empty}</p>
         )}
       </div>
 
@@ -182,12 +186,14 @@ export function AcademicPage({ token, section }: { token: string | null; section
               <label className="block text-sm font-medium text-app-text">Tanggal akhir<input name="endDate" required type="date" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /></label>
             </div>
           </> : section === "subjects" ? <>
-            <label className="block text-sm font-medium text-app-text">Nama mata pelajaran<input name="name" required maxLength={120} placeholder="Matematika" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /></label>
+            <label className="block text-sm font-medium text-app-text">Nama mata pelajaran / mata kuliah<input name="name" required maxLength={120} placeholder="Matematika" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /></label>
             <label className="block text-sm font-medium text-app-text">Kode (opsional)<input name="code" maxLength={30} placeholder="MTK" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /></label>
+            <label className="block text-sm font-medium text-app-text">Kategori mata pelajaran<input name="category" maxLength={80} placeholder="Umum, Kejuruan, Produktif, Peminatan..." className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /><span className="mt-1 block text-xs text-app-muted">Kategori bebas ditentukan admin dan tidak bergantung pada jurusan.</span></label>
           </> : <>
             <label className="block text-sm font-medium text-app-text">Nama kelas<input name="name" required maxLength={80} placeholder="VII A" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /></label>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block text-sm font-medium text-app-text">Tingkat kelas<select name="gradeLevel" required defaultValue="7" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text">{Array.from({ length: 12 }, (_, index) => index + 1).map((grade) => <option key={grade} value={grade}>{grade}</option>)}</select></label>
+              <label className="block text-sm font-medium text-app-text">Tingkat / semester<select name="gradeLevel" required defaultValue="1" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text">{Array.from({ length: 20 }, (_, index) => index + 1).map((grade) => <option key={grade} value={grade}>{grade}</option>)}</select></label>
+              {educationSettings.departmentsEnabled && <label className="block text-sm font-medium text-app-text">Jurusan / program (opsional)<select name="departmentName" defaultValue="" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text"><option value="">Tanpa jurusan</option>{educationSettings.departments.map((department) => <option key={department} value={department}>{department}</option>)}</select></label>}
               <label className="block text-sm font-medium text-app-text">Tahun ajaran<select name="academicYearId" required defaultValue="" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text"><option value="" disabled>Pilih tahun ajaran</option>{years.map((year) => <option key={year.id} value={year.id}>{year.name}{year.isActive ? " (Aktif)" : ""}</option>)}</select></label>
             </div>
             {years.length === 0 && <p className="text-xs text-app-muted">Buat tahun ajaran terlebih dahulu sebelum menambah kelas.</p>}

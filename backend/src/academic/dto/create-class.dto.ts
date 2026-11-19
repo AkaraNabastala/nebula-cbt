@@ -8,7 +8,7 @@ export class CreateClassDto {
 
   @IsInt()
   @Min(1)
-  @Max(12)
+  @Max(20)
   gradeLevel!: number;
 
   @IsUUID()
@@ -17,4 +17,9 @@ export class CreateClassDto {
   @IsUUID()
   @IsOptional()
   homeroomTeacherId?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(120)
+  departmentName?: string;
 }

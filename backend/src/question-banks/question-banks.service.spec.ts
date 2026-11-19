@@ -3,6 +3,10 @@ import { QuestionBanksService } from './question-banks.service.js';
 import type { PrismaService } from '../prisma/prisma.service.js';
 
 describe('QuestionBanksService', () => {
+  const tx = {
+    question: { create: vi.fn() },
+    auditLog: { create: vi.fn() },
+  };
   const prisma = {
     $transaction: vi.fn(),
     subject: { findUnique: vi.fn() },
@@ -56,4 +60,55 @@ describe('QuestionBanksService', () => {
 
     expect(prisma.question.findMany).not.toHaveBeenCalled();
   });
+
+  it('creates a question with options and its answer key as one transaction', async () => {
+    vi.mocked(prisma.questionBank.findUnique).mockResolvedValue({
+      id: 'bank-1',
+      subjectId: 'subject-1',
+      name: 'Matematika',
+    } as never);
+    vi.mocked(prisma.$transaction).mockImplementation(
+      ((callback: (client: typeof tx) => Promise<unknown>) => callback(tx)) as never,
+    );
+    vi.mocked(tx.question.create).mockResolvedValue({
+      id: 'question-1',
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      content: { text: 'Berapa hasil 2 + 2?' },
+      defaultPoints: '2',
+      status: 'DRAFT',
+      createdAt: new Date('2026-11-19T00:00:00.000Z'),
+    } as never);
+
+    const result = await service.createQuestion('bank-1', {
+      type: 'SINGLE_CHOICE',
+      difficulty: 'MEDIUM',
+      content: 'Berapa hasil 2 + 2?',
+      points: 2,
+      options: [
+        { label: 'A', text: '3' },
+        { label: 'B', text: '4' },
+      ],
+      correctLabels: ['B'],
+    }, { id: 'admin-1', roles: ['ADMIN'] });
+
+    expect(result).toMatchObject({ id: 'question-1', status: 'DRAFT' });
+    expect(tx.question.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        questionBankId: 'bank-1',
+        type: 'SINGLE_CHOICE',
+        options: {
+          create: [
+            expect.objectContaining({ label: 'A', content: { text: '3' }, sortOrder: 0 }),
+            expect.objectContaining({ label: 'B', content: { text: '4' }, sortOrder: 1 }),
+          ],
+        },
+        answerKey: {
+          create: { answerData: { correctLabels: ['B'] }, gradingGuide: null },
+        },
+      }),
+    }));
+    expect(tx.auditLog.create).toHaveBeenCalled();
+  });
+
 });

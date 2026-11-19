@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "./hooks/useAuth";
+import { apiRequest } from "./lib/api";
 import { LoadingScreen } from "./components/shared/Brand";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { ChangePasswordPage } from "./pages/auth/ChangePasswordPage";
@@ -10,6 +11,7 @@ import {
   usePathname,
 } from "./app/routes";
 import { DashboardPage } from "./pages/dashboard/DashboardPage";
+import { EducationSettingsPage } from "./pages/admin/EducationSettingsPage";
 
 function App() {
   const pathname = usePathname();
@@ -18,6 +20,20 @@ function App() {
 
   const role = user ? getPrimaryRole(user.roles) : "";
   const dashboardPath = user ? getDashboardPath(role) : null;
+  const completeSetup = useCallback(() => navigate(dashboardPath ?? "/admin/dashboard", true), [dashboardPath]);
+
+  useEffect(() => {
+    if (!token || role !== "ADMIN" || pathname === "/setup") return;
+    let active = true;
+    void apiRequest<{ educationLevel?: string }>("/academic/education-settings", { token })
+      .then((settings) => {
+        if (active && (!settings.educationLevel || settings.educationLevel === "Belum ditentukan")) {
+          navigate("/setup", true);
+        }
+      })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, [token, role, pathname]);
 
   let expectedPath = "/login";
 
@@ -39,6 +55,7 @@ function App() {
           "/admin/teacher-assignments",
           "/admin/people",
           "/admin/audit-logs",
+          "/setup",
         ])
       : role === "TEACHER"
         ? new Set(["/account", "/guru/questions", "/guru/exams", "/guru/results"])
@@ -126,7 +143,11 @@ function App() {
                     ? "teacherAssignments"
                   : pathname === "/admin/audit-logs"
                     ? "audit"
-                    : "dashboard";
+                              : "dashboard";
+
+  if (pathname === "/setup" && role === "ADMIN") {
+    return <EducationSettingsPage token={token} onComplete={completeSetup} />;
+  }
 
   return (
     <DashboardPage
