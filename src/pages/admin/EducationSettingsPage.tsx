@@ -123,7 +123,7 @@ export function EducationSettingsPage({ token }: { token: string | null }) {
               <p className="mt-1 text-sm leading-6 text-app-muted">Opsional. Aktifkan hanya jika lembaga memerlukan pengelompokan peserta berdasarkan jurusan. Nama jurusan sepenuhnya ditentukan admin.</p>
             </div>
             <label className="inline-flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-app-border px-3 text-sm font-medium text-app-text">
-              <input type="checkbox" checked={settings.departmentsEnabled} onChange={(event) => setSettings((current) => ({ ...current, departmentsEnabled: event.target.checked, departments: event.target.checked ? current.departments : [] }))} className="size-4 accent-[#318BCB]" />
+              <input type="checkbox" checked={settings.departmentsEnabled} onChange={(event) => setSettings((current) => ({ ...current, departmentsEnabled: event.target.checked }))} className="size-4 accent-[#318BCB]" />
               Aktifkan jurusan
             </label>
           </div>
