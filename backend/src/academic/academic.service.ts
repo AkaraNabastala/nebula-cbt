@@ -29,8 +29,8 @@ export class AcademicService {
   async updateEducationSettings(input: unknown, actor: Actor) {
     const existing = await this.prisma.systemSetting.findUnique({ where: { key: 'education_structure' } });
     const current = existing?.value as { educationLevel?: string } | undefined;
-    if (current?.educationLevel && current.educationLevel !== 'Belum ditentukan') {
-      throw new ConflictException('Setup lembaga sudah selesai. Hubungi pengelola sistem untuk perubahan identitas.');
+    if (current?.educationLevel && current.educationLevel !== 'Belum ditentukan' && current.institutionName) {
+      throw new ConflictException('Setup lembaga sudah selesai. Jenjang tidak dapat diubah dari halaman setup.');
     }
     if (!input || typeof input !== 'object' || Array.isArray(input)) throw new BadRequestException('Pengaturan lembaga tidak valid.');
     const value = input as Record<string, unknown>;
@@ -40,7 +40,8 @@ export class AcademicService {
     const logoDataUrl = typeof value.logoDataUrl === 'string' ? value.logoDataUrl : '';
     const departmentsEnabled = value.departmentsEnabled === true;
     const departments = Array.isArray(value.departments) ? value.departments : [];
-    if (!institutionType || institutionType.length > 80 || !educationLevel || educationLevel.length > 80 || institutionName.length > 160) throw new BadRequestException('Identitas lembaga dan jenjang pendidikan tidak valid.');
+    if (!institutionType || institutionType.length > 80 || !educationLevel || educationLevel.length > 80 || !institutionName || institutionName.length > 160) throw new BadRequestException('Nama lembaga, jenis lembaga, dan jenjang wajib diisi.');
+    if (current?.educationLevel && current.educationLevel !== 'Belum ditentukan' && current.educationLevel !== educationLevel) throw new ConflictException('Jenjang pendidikan dikunci setelah setup awal.');
     if (logoDataUrl && (logoDataUrl.length > 400_000 || !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/.test(logoDataUrl))) throw new BadRequestException('Logo harus berupa PNG, JPG, atau WebP dengan ukuran maksimal 250 KB.');
     if (departments.length > 200 || departments.some((item) => typeof item !== 'string' || !item.trim() || item.trim().length > 120)) throw new BadRequestException('Daftar jurusan tidak valid.');
     const normalizedDepartments = [...new Set((departments as string[]).map((item) => item.trim()))];
