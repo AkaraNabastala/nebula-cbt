@@ -24,3 +24,22 @@ ENERGY 2 / RHYTHM 2 / MOTION 1.
 - Visible navigation points only to implemented, role-appropriate screens; unfinished capabilities are not presented as active controls.
 - The workspace header remains sticky at the top during scrolling, while the desktop sidebar stays independently anchored.
 - Mobile workspace navigation uses a compact disclosure menu instead of squeezing the desktop navigation row.
+
+
+## Information architecture refinement
+- A screen owns one primary administrative task. Academic years, subjects, and classes are separate destinations rather than tabs inside one mixed page.
+- Student enrollment and teacher assignment are separate destinations because they have different actors, inputs, and lifecycle actions.
+- Sidebar groups follow the user's work: Asesmen, Administrasi sekolah, and Sistem. Account settings remain a distinct destination.
+- Desktop uses a compact, persistent sidebar; mobile uses nested disclosure groups so navigation does not become a wall of buttons.
+- Each data page has one clear heading, a short explanation, its primary action, and one focused list. Creation forms live in dialogs, not stacked inline panels.
+
+## Dialog behavior
+- Native modal dialogs are centered in the viewport at all breakpoints.
+- The backdrop uses a dark scrim and restrained blur to separate the active task from the workspace.
+- Dialog height is bounded by the dynamic viewport; long forms scroll inside the dialog rather than moving the page behind it.
+- Native Escape behavior, backdrop dismissal, focus management, and visible close controls are retained.
+
+## Layout character
+- Keep the navy brand panel as a strong anchor, use blue only for active navigation and key actions, and give data surfaces clear grouping.
+- Avoid turning every data block into a card. Lists and tables remain flat when they represent repeated records.
+- Prioritize one task per screen, clear page titles, and a shorter path to the main action over decorative dashboard metrics.
