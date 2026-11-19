@@ -17,9 +17,8 @@ export function ModuleCard({
       <div className="min-w-0">
         <h3 className="text-sm font-semibold text-app-text">{title}</h3>
         <p className="mt-2 text-xs leading-5 text-app-muted">{description}</p>
-        <span className="mt-4 inline-flex items-center gap-1.5 text-[11px] font-medium text-app-muted">
-          <span className="size-1.5 rounded-full bg-app-muted" />
-          Belum diaktifkan
+        <span className="mt-4 inline-flex items-center text-[11px] font-medium text-app-muted">
+          Tersedia di menu workspace
         </span>
       </div>
     </article>
