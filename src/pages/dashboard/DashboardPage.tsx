@@ -159,7 +159,7 @@ export function DashboardPage({
         <details className="border-b border-app-border bg-app-surface lg:hidden">
           <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-5 text-xs font-semibold text-app-text hover:bg-app-bg active:bg-app-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-app-primary">
             <span>Menu workspace</span>
-            <span className="font-normal text-app-muted">{page === "dashboard" ? "Ringkasan" : page === "users" ? "Pengguna" : page === "academic" ? "Akademik" : page === "questions" ? "Bank soal" : page === "exams" ? (role === "STUDENT" ? "Ujian saya" : "Operasional ujian") : page === "results" ? "Penilaian dan hasil" : page === "people" ? "Siswa dan penugasan" : page === "audit" ? "Audit log" : "Akun saya"}</span>
+            <span className="font-normal text-app-muted">{pageLabels[page]}</span>
           </summary>
           <nav aria-label="Navigasi utama seluler" onClick={(event) => { if ((event.target as HTMLElement).closest("button")) { const menu = event.currentTarget.closest("details") as HTMLDetailsElement | null; if (menu) menu.open = false; } }} className="space-y-1 px-4 pb-3">
             <button type="button" onClick={() => setPage("dashboard")} aria-current={page === "dashboard" ? "page" : undefined} className={navClass(page === "dashboard")}><LayoutDashboard size={16} /> Ringkasan</button>
