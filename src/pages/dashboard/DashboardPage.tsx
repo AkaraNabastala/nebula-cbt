@@ -7,6 +7,7 @@ import {
   GraduationCap,
   BookOpen,
   ClipboardList,
+  Settings,
 } from "lucide-react";
 import type { AuthUser } from "../../contexts/AuthContext";
 import { Brand } from "../../components/shared/Brand";
@@ -22,8 +23,9 @@ import { StudentExamsPage } from "../siswa/StudentExamsPage";
 import { ResultsPage } from "../guru/ResultsPage";
 import { PeopleManagementPage } from "../admin/PeopleManagementPage";
 import { AuditLogsPage } from "../admin/AuditLogsPage";
+import { EducationSettingsPage } from "../admin/EducationSettingsPage";
 
-export type DashboardSection = "dashboard" | "account" | "users" | "academicYears" | "academicSubjects" | "academicClasses" | "questions" | "exams" | "results" | "enrollments" | "teacherAssignments" | "audit";
+export type DashboardSection = "dashboard" | "account" | "users" | "academicYears" | "academicSubjects" | "academicClasses" | "questions" | "exams" | "results" | "enrollments" | "teacherAssignments" | "audit" | "educationSettings";
 
 const roleDetails: Record<string, {
   label: string;
@@ -89,6 +91,7 @@ export function DashboardPage({
     enrollments: "Penempatan siswa",
     teacherAssignments: "Penugasan guru",
     audit: "Audit log",
+    educationSettings: "Struktur pendidikan",
   };
 
   const navClass = (active: boolean) =>
@@ -130,9 +133,11 @@ export function DashboardPage({
 
               </div>
             </details>}
-            {role === "ADMIN" && <details className="group rounded-lg" open={page === "audit"}>
+            {role === "ADMIN" && <details className="group rounded-lg" open={page === "audit" || page === "educationSettings"}>
               <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-xs font-semibold text-app-muted hover:bg-app-bg hover:text-app-text"><span>Sistem</span><span aria-hidden="true" className="text-app-muted transition-transform group-open:rotate-90">›</span></summary>
               <div className="mt-1 space-y-1 pl-2">
+                <button type="button" onClick={() => setPage("educationSettings")} aria-current={page === "educationSettings" ? "page" : undefined} className={navClass(page === "educationSettings")}><Settings size={16} /> Struktur pendidikan</button>
+                <button type="button" onClick={() => setPage("educationSettings")} aria-current={page === "educationSettings" ? "page" : undefined} className={navClass(page === "educationSettings")}><Settings size={16} /> Struktur pendidikan</button>
                 <button type="button" onClick={() => setPage("audit")} aria-current={page === "audit" ? "page" : undefined} className={navClass(page === "audit")}><ShieldCheck size={16} /> Audit log</button>
               </div>
             </details>}
@@ -217,6 +222,7 @@ export function DashboardPage({
                     : page === "enrollments" && role === "ADMIN" ? <PeopleManagementPage token={token} section="enrollments" />
                       : page === "teacherAssignments" && role === "ADMIN" ? <PeopleManagementPage token={token} section="teacherAssignments" />
                       : page === "audit" && role === "ADMIN" ? <AuditLogsPage token={token} />
+                      : page === "educationSettings" && role === "ADMIN" ? <EducationSettingsPage token={token} />
                     : role === "ADMIN" ? <AdminDashboardPage user={user} detail={detail} />
                     : role === "TEACHER" ? <GuruDashboardPage user={user} detail={detail} />
                       : <SiswaDashboardPage user={user} detail={detail} />}
