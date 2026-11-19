@@ -104,7 +104,7 @@ export function EducationSettingsPage({ token }: { token: string | null }) {
             </label>
             <label className="block text-sm font-medium text-app-text">Jenjang pendidikan
               <select value={settings.educationLevel} onChange={(event) => setSettings((current) => ({ ...current, educationLevel: event.target.value }))} className={inputClass}>
-                <option value="SD/MI">SD/MI</option>
+                <option value="Belum ditentukan">Pilih jenjang pendidikan</option>\n                <option value="SD/MI">SD/MI</option>
                 <option value="SMP/MTs">SMP/MTs</option>
                 <option value="SMA/MA">SMA/MA</option>
                 <option value="SMK">SMK</option>
