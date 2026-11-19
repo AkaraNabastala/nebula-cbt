@@ -259,7 +259,7 @@ export function StudentExamsPage({ token }: { token: string | null }) {
     if (!attempt?.id) return;
     const timeout = window.setTimeout(() => { void submitRef.current(); }, initialRemainingSeconds * 1000);
     return () => window.clearTimeout(timeout);
-  }, [attempt?.id]);
+  }, [attempt?.id, initialRemainingSeconds]);
 
   const currentQuestion = attempt?.questions[currentIndex];
   const currentAnswer = currentQuestion ? answers[currentQuestion.id]?.answerData ?? {} : {};
