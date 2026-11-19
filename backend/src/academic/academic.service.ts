@@ -17,7 +17,7 @@ export class AcademicService {
 
   async getEducationSettings() {
     const setting = await this.prisma.systemSetting.findUnique({ where: { key: 'education_structure' } });
-    return setting?.value ?? { institutionType: 'Sekolah / lembaga pendidikan', educationLevel: 'Belum ditentukan', departmentsEnabled: false, departments: [] };
+    return setting?.value ?? { institutionType: 'Sekolah / lembaga pendidikan', institutionName: '', logoDataUrl: '', educationLevel: 'Belum ditentukan', departmentsEnabled: false, departments: [] };
   }
 
   async updateEducationSettings(input: unknown, actor: Actor) {
@@ -25,12 +25,15 @@ export class AcademicService {
     const value = input as Record<string, unknown>;
     const institutionType = typeof value.institutionType === 'string' ? value.institutionType.trim() : '';
     const educationLevel = typeof value.educationLevel === 'string' ? value.educationLevel.trim() : '';
+    const institutionName = typeof value.institutionName === 'string' ? value.institutionName.trim() : '';
+    const logoDataUrl = typeof value.logoDataUrl === 'string' ? value.logoDataUrl : '';
     const departmentsEnabled = value.departmentsEnabled === true;
     const departments = Array.isArray(value.departments) ? value.departments : [];
-    if (!institutionType || institutionType.length > 80 || !educationLevel || educationLevel.length > 80) throw new BadRequestException('Jenis lembaga dan jenjang pendidikan wajib diisi.');
+    if (!institutionType || institutionType.length > 80 || !educationLevel || educationLevel.length > 80 || institutionName.length > 160) throw new BadRequestException('Identitas lembaga dan jenjang pendidikan tidak valid.');
+    if (logoDataUrl && (logoDataUrl.length > 400_000 || !/^data:image\\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/.test(logoDataUrl))) throw new BadRequestException('Logo harus berupa PNG, JPG, atau WebP dengan ukuran maksimal 250 KB.');
     if (departments.length > 200 || departments.some((item) => typeof item !== 'string' || !item.trim() || item.trim().length > 120)) throw new BadRequestException('Daftar jurusan tidak valid.');
     const normalizedDepartments = [...new Set((departments as string[]).map((item) => item.trim()))];
-    const nextValue = { institutionType, educationLevel, departmentsEnabled, departments: normalizedDepartments };
+    const nextValue = { institutionType, institutionName, logoDataUrl, educationLevel, departmentsEnabled, departments: normalizedDepartments };
     return this.prisma.$transaction(async (tx) => {
       const setting = await tx.systemSetting.upsert({
         where: { key: 'education_structure' },
