@@ -100,3 +100,23 @@ select:disabled {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Shared modal layer: centered in the viewport with a readable, softened backdrop. */
+dialog[open] {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  max-width: min(calc(100vw - 2rem), 48rem);
+  max-height: min(90dvh, 48rem);
+}
+
+dialog::backdrop {
+  background: rgb(7 18 29 / 58%);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+:root[data-theme="dark"] dialog::backdrop {
+  background: rgb(2 8 14 / 68%);
+}
