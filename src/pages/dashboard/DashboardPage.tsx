@@ -183,7 +183,8 @@ export function DashboardPage({
                 <button type="button" onClick={() => setPage("academicClasses")} aria-current={page === "academicClasses" ? "page" : undefined} className={navClass(page === "academicClasses")}>Kelas</button>
                 <p className="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-wider text-app-muted">Pengelolaan</p>
                 <button type="button" onClick={() => setPage("users")} aria-current={page === "users" ? "page" : undefined} className={navClass(page === "users")}><Users size={16} /> Akun pengguna</button>
-                <button type="button" onClick={() => setPage("people")} aria-current={page === "people" ? "page" : undefined} className={navClass(page === "people")}><Users size={16} /> Penempatan dan penugasan</button>
+                <button type="button" onClick={() => setPage("enrollments")} aria-current={page === "enrollments" ? "page" : undefined} className={navClass(page === "enrollments")}><Users size={16} /> Penempatan siswa</button>
+                <button type="button" onClick={() => setPage("teacherAssignments")} aria-current={page === "teacherAssignments" ? "page" : undefined} className={navClass(page === "teacherAssignments")}><GraduationCap size={16} /> Penugasan guru</button>
                 <button type="button" onClick={() => setPage("audit")} aria-current={page === "audit" ? "page" : undefined} className={navClass(page === "audit")}><ShieldCheck size={16} /> Audit log</button>
               </div>
             </details>}
