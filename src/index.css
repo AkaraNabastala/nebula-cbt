@@ -9,6 +9,7 @@
   --color-app-border: var(--app-border);
   --color-app-primary: var(--app-primary);
   --color-app-primary-hover: var(--app-primary-hover);
+  --color-app-primary-contrast: var(--app-primary-contrast);
   --color-app-soft: var(--app-soft);
   --color-app-input: var(--app-input);
 }
@@ -24,6 +25,7 @@
   --app-border: #d8e4ee;
   --app-primary: #183b5b;
   --app-primary-hover: #245477;
+  --app-primary-contrast: #ffffff;
   --app-soft: #e7f3fb;
   --app-input: #ffffff;
 }
@@ -36,6 +38,7 @@
   --app-border: #344b60;
   --app-primary: #8bcdf2;
   --app-primary-hover: #b2e0fa;
+  --app-primary-contrast: #101c29;
   --app-soft: #243c51;
   --app-input: #142536;
 }
@@ -64,11 +67,16 @@ input {
   font: inherit;
 }
 
-button {
+button,
+select,
+label[for],
+input[type="checkbox"],
+input[type="radio"] {
   cursor: pointer;
 }
 
-button:disabled {
+button:disabled,
+select:disabled {
   cursor: not-allowed;
 }
 

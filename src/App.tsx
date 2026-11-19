@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useTheme } from "./hooks/useTheme";
 import { useAuth } from "./hooks/useAuth";
 import { LoadingScreen } from "./components/shared/Brand";
 import { LoginPage } from "./pages/auth/LoginPage";
@@ -13,11 +12,9 @@ import {
 import { DashboardPage } from "./pages/dashboard/DashboardPage";
 
 function App() {
-  useTheme();
-
   const pathname = usePathname();
   const [mustChangeNotice, setMustChangeNotice] = useState("");
-  const { user, isLoading, login, logout, changePassword } = useAuth();
+  const { user, token, isLoading, login, logout, changePassword } = useAuth();
 
   const role = user ? getPrimaryRole(user.roles) : "";
   const dashboardPath = user ? getDashboardPath(role) : null;
@@ -32,7 +29,27 @@ function App() {
         ? "/account"
         : role === "ADMIN" && pathname === "/admin/users"
           ? "/admin/users"
-          : dashboardPath || "/unsupported";
+          : role === "ADMIN" && pathname === "/admin/academic"
+            ? "/admin/academic"
+            : role === "ADMIN" && pathname === "/admin/questions"
+              ? "/admin/questions"
+              : role === "ADMIN" && pathname === "/admin/exams"
+                ? "/admin/exams"
+                : role === "TEACHER" && pathname === "/guru/questions"
+                  ? "/guru/questions"
+                  : role === "TEACHER" && pathname === "/guru/exams"
+                    ? "/guru/exams"
+                    : role === "STUDENT" && pathname === "/siswa/exams"
+                      ? "/siswa/exams"
+                      : role === "ADMIN" && pathname === "/admin/results"
+                        ? "/admin/results"
+                        : role === "TEACHER" && pathname === "/guru/results"
+                          ? "/guru/results"
+                          : role === "ADMIN" && pathname === "/admin/people"
+                            ? "/admin/people"
+                            : role === "ADMIN" && pathname === "/admin/audit-logs"
+                              ? "/admin/audit-logs"
+                              : dashboardPath || "/unsupported";
   }
 
   useEffect(() => {
@@ -86,13 +103,45 @@ function App() {
     );
   }
 
+  const page = pathname === "/account"
+    ? "account"
+    : pathname === "/admin/users"
+      ? "users"
+      : pathname === "/admin/academic"
+        ? "academic"
+        : pathname === "/admin/questions" || pathname === "/guru/questions"
+          ? "questions"
+          : pathname === "/admin/exams" || pathname === "/guru/exams"
+            ? "exams"
+            : pathname === "/siswa/exams"
+              ? "exams"
+              : pathname === "/admin/results" || pathname === "/guru/results"
+                ? "results"
+                : pathname === "/admin/people"
+                  ? "people"
+                  : pathname === "/admin/audit-logs"
+                    ? "audit"
+                    : "dashboard";
+
   return (
     <DashboardPage
       user={user}
-      page={pathname === "/account" ? "account" : pathname === "/admin/users" ? "users" : "dashboard"}
-      setPage={(page) =>
-        navigate(page === "account" ? "/account" : page === "users" ? "/admin/users" : dashboardPath)
-      }
+      token={token}
+      page={page}
+      setPage={(nextPage) => {
+        const paths = {
+          account: "/account",
+          users: "/admin/users",
+          academic: "/admin/academic",
+          questions: role === "ADMIN" ? "/admin/questions" : "/guru/questions",
+          exams: role === "ADMIN" ? "/admin/exams" : role === "TEACHER" ? "/guru/exams" : "/siswa/exams",
+          results: role === "ADMIN" ? "/admin/results" : "/guru/results",
+          people: "/admin/people",
+          audit: "/admin/audit-logs",
+          dashboard: dashboardPath,
+        } as const;
+        navigate(paths[nextPage] ?? dashboardPath ?? "/login");
+      }}
       onLogout={logout}
       onChangePassword={() => navigate("/account")}
     />

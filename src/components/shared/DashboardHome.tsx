@@ -26,7 +26,7 @@ export function DashboardHome({
 }) {
   return (
     <>
-      <section className="mb-9">
+      <section className="mb-7">
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div className="max-w-2xl">
             <p className="text-xs font-semibold tracking-[0.12em] text-[#318BCB]">
@@ -48,18 +48,27 @@ export function DashboardHome({
         </div>
       </section>
 
-      <section className="mb-8 rounded-2xl bg-[#183B5B] p-6 text-white sm:p-8">
-        <div className="max-w-2xl">
-          <p className="text-xs font-medium text-[#B9D9EF]">
-            NEBULA CBT · AKARANABASTALA
-          </p>
-          <h2 className="mt-3 text-xl font-semibold tracking-tight sm:text-2xl">
-            Selamat datang, {user.fullName}.
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-[#D5E5F1]">
-            Anda masuk sebagai {detail.label}. Ruang kerja dan hak akses
-            ditampilkan berdasarkan role akun Anda.
-          </p>
+      <section className="relative mb-8 overflow-hidden rounded-2xl bg-[#183B5B] p-6 text-white shadow-sm sm:p-8">
+        <div className="grid items-end gap-7 lg:grid-cols-[minmax(0,1fr)_250px]">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold tracking-[0.12em] text-[#B9D9EF]">
+              NEBULA CBT <span className="mx-1 text-white/45">/</span> AKARANABASTALA
+            </p>
+            <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-[30px]">
+              Selamat datang, {user.fullName}.
+            </h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-[#D5E5F1]">
+              Anda masuk sebagai {detail.label}. Ruang kerja dan hak akses ditampilkan sesuai tanggung jawab akun Anda.
+            </p>
+          </div>
+          <div className="rounded-xl border border-white/20 bg-white/10 p-4">
+            <p className="text-[11px] font-medium text-[#B9D9EF]">AKUN AKTIF</p>
+            <p className="mt-2 truncate text-sm font-semibold text-white">{user.fullName}</p>
+            <div className="mt-4 flex items-end justify-between border-t border-white/15 pt-3">
+              <span className="text-xs text-[#D5E5F1]">Hak akses tersedia</span>
+              <span className="text-2xl font-semibold tabular-nums text-white">{user.permissions.length}</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -77,11 +86,11 @@ export function DashboardHome({
         </div>
       </section>
 
-      <section className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-app-border bg-app-surface p-5">
+      <section className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-app-border bg-app-surface p-5">
         <div>
           <p className="text-sm font-semibold text-app-text">Informasi akses</p>
           <p className="mt-1 text-xs text-app-muted">
-            {user.permissions.length} permission aktif pada sesi ini.
+            Navigasi dan fitur ditampilkan mengikuti hak akses akun Anda.
           </p>
         </div>
         <span className="inline-flex h-10 items-center gap-2 px-3 text-xs font-semibold text-app-primary">
