@@ -1,7 +1,8 @@
-import { IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
 
 export class CreateClassDto {
   @IsString()
+  @IsNotEmpty()
   @MaxLength(80)
   name!: string;
 
