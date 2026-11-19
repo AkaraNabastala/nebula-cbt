@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { randomUUID } from "node:crypto";
 import { stdin, stdout } from "node:process";
+import { createInterface } from "node:readline/promises";
 import { Pool } from "pg";
 import argon2 from "argon2";
 
@@ -80,6 +81,12 @@ try {
   }
 
   const admin = result.rows[0];
+  console.log(`Target reset: ${admin.full_name} <${email}>`);
+  const terminal = createInterface({ input: stdin, output: stdout });
+  const confirmationText = await terminal.question("Ketik RESET untuk melanjutkan: ");
+  terminal.close();
+  if (confirmationText !== "RESET") throw new Error("Konfirmasi tidak cocok; reset dibatalkan.");
+
   const passwordHash = await argon2.hash(password, {
     type: argon2.argon2id,
     memoryCost: 19456,
