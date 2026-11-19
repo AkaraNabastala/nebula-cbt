@@ -156,8 +156,8 @@ export class StudentExamsService {
         await tx.examParticipant.update({ where: { id: participant.id }, data: { status: 'IN_PROGRESS' } });
       }
       if (now >= attempt.deadlineAt) {
-        await tx.attempt.update({ where: { id: attempt.id }, data: { status: 'EXPIRED' } });
-        throw new ConflictException('Waktu pengerjaan telah habis. Hubungi pengawas jika perlu pemulihan.');
+        const closed = await this.finalize(tx, attempt.id, true);
+        return { alreadyClosed: true, ...closed, serverTime: now };
       }
 
       const sessionToken = await this.createDeviceSession(tx, attempt.id, dto, actor);
