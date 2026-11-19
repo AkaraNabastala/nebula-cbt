@@ -41,7 +41,7 @@ export function EducationSettingsPage({ token, onComplete }: { token: string | n
         const value = await apiRequest<Partial<EducationSettings>>("/academic/education-settings", { token });
         if (!active) return;
         const loaded = { ...defaults, ...value, departments: Array.isArray(value.departments) ? value.departments : [] };
-        if (loaded.educationLevel && loaded.educationLevel !== "Belum ditentukan") {
+        if (loaded.educationLevel && loaded.educationLevel !== "Belum ditentukan" && loaded.institutionName) {
           onComplete();
           return;
         }
@@ -150,7 +150,7 @@ export function EducationSettingsPage({ token, onComplete }: { token: string | n
                 <p className="mt-1 text-sm text-app-muted">Nama dan logo akan tampil di workspace.</p>
                 <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_132px]">
                   <label className="block text-sm font-medium text-app-text">Nama lembaga
-                    <input value={settings.institutionName} onChange={(event) => setSettings((current) => ({ ...current, institutionName: event.target.value }))} maxLength={160} placeholder="Nama sekolah atau kampus" className={inputClass} />
+                    <input value={settings.institutionName} onChange={(event) => setSettings((current) => ({ ...current, institutionName: event.target.value }))} required maxLength={160} placeholder="Nama sekolah atau kampus" className={inputClass} />
                   </label>
                   <div>
                     <span className="block text-sm font-medium text-app-text">Logo</span>
@@ -207,7 +207,7 @@ export function EducationSettingsPage({ token, onComplete }: { token: string | n
               {error && <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm text-app-text">{error}</p>}
               <div className="flex flex-col-reverse gap-3 border-t border-app-border pt-5 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-xs text-app-muted">Jenjang dikunci setelah setup selesai.</p>
-                <button type="submit" disabled={saving || !settings.institutionType.trim() || settings.educationLevel === "Belum ditentukan"} className="min-h-11 rounded-lg bg-app-primary px-5 text-sm font-semibold text-app-primary-contrast hover:bg-app-primary-hover disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Menyimpan..." : "Simpan & masuk"}</button>
+                <button type="submit" disabled={saving || !settings.institutionName.trim() || !settings.institutionType.trim() || settings.educationLevel === "Belum ditentukan"} className="min-h-11 rounded-lg bg-app-primary px-5 text-sm font-semibold text-app-primary-contrast hover:bg-app-primary-hover disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Menyimpan..." : "Simpan & masuk"}</button>
               </div>
             </section>
           </div>
