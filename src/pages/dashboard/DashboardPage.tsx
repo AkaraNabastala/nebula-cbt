@@ -4,6 +4,7 @@ import {
   ShieldCheck,
   UserRound,
   Users,
+  GraduationCap,
 } from "lucide-react";
 import type { AuthUser } from "../../contexts/AuthContext";
 import { Brand } from "../../components/shared/Brand";
@@ -12,8 +13,9 @@ import { AdminDashboardPage } from "../admin/DashboardPage";
 import { GuruDashboardPage } from "../guru/DashboardPage";
 import { SiswaDashboardPage } from "../siswa/DashboardPage";
 import { UsersPage } from "../admin/UsersPage";
+import { AcademicPage } from "../admin/AcademicPage";
 
-export type DashboardSection = "dashboard" | "account" | "users";
+export type DashboardSection = "dashboard" | "account" | "users" | "academic";
 
 const roleDetails: Record<string, {
   label: string;
@@ -88,7 +90,7 @@ export function DashboardPage({
               <LayoutDashboard size={17} />
               Ringkasan
             </button>
-            {role === "ADMIN" && (
+            {role === "ADMIN" && (\n              <button type="button" onClick={() => setPage("academic")}\n                aria-current={page === "academic" ? "page" : undefined}\n                className={`flex h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-medium ${\n                  page === "academic" ? "bg-app-soft text-app-primary" : "text-app-muted hover:bg-app-bg hover:text-app-text"\n                }`}>\n                <GraduationCap size={17} />\n                Akademik dan Kelas\n              </button>\n            )}\n            {role === "ADMIN" && (
               <button type="button" onClick={() => setPage("users")}
                 aria-current={page === "users" ? "page" : undefined}
                 className={`flex h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-medium ${
@@ -134,7 +136,7 @@ export function DashboardPage({
           <div className="hidden text-xs text-app-muted lg:block">
             Workspace <span className="mx-2">/</span>
             <span className="font-medium text-app-text">
-              {page === "dashboard" ? "Ringkasan" : page === "users" ? "Pengguna dan Hak Akses" : "Akun saya"}
+              {page === "dashboard" ? "Ringkasan" : page === "users" ? "Pengguna dan Hak Akses" : page === "academic" ? "Akademik dan Kelas" : "Akun saya"}
             </span>
           </div>
           <div className="ml-auto flex items-center gap-3">
