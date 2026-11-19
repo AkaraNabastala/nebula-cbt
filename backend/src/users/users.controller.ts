@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { AuthenticatedRequest } from '../auth/auth.types.js';
+import type { AuthenticatedRequest } from '../auth/auth.types.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { PermissionGuard } from '../auth/guards/permission.guard.js';
 import { RequirePermissions } from '../auth/decorators/require-permissions.decorator.js';
