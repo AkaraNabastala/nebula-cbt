@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, useRef, type FormEvent } from "react";
+import { Plus, X } from "lucide-react";
 import { apiRequest } from "../../lib/api";
 
 type AssessmentType = { id: string; code: string; name: string };
@@ -48,6 +49,8 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [publishingId, setPublishingId] = useState("");
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const createDialogRef = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
@@ -102,6 +105,9 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
     }
   }, [banks, token]);
 
+  useEffect(() => {
+    if (showCreateDialog && createDialogRef.current && !createDialogRef.current.open) createDialogRef.current.showModal();
+  }, [showCreateDialog]);
   useEffect(() => { void Promise.resolve().then(load); }, [load]);
   useEffect(() => {
     if (selectedSubjectId && banks.length) void Promise.resolve().then(() => loadQuestionOptions(selectedSubjectId));
@@ -153,6 +159,7 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
           shuffleOptions: form.get("shuffleOptions") === "on",
         }),
       });
+      setShowCreateDialog(false);
       setNotice(`Draf ujian "${result.name}" berhasil dibuat. Periksa jadwal dan peserta sebelum menerbitkan.`);
       formElement.reset();
       setSelectedQuestionIds([]);
@@ -187,14 +194,14 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
 
   return (
     <section className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight text-app-text">Operasional ujian</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-app-muted">Susun paket dari soal terbit, tentukan kelas dan waktu, lalu terbitkan untuk mendaftarkan peserta.</p>
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div><h1 className="text-xl font-semibold tracking-tight text-app-text">Operasional ujian</h1><p className="mt-1 max-w-2xl text-sm text-app-muted">Susun paket, tentukan peserta dan jadwal, lalu terbitkan ujian.</p></div>
+        <button type="button" onClick={() => { setError(""); setShowCreateDialog(true); }} disabled={!subjects.length || !assessmentTypes.length || !years.length} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-app-primary px-4 text-sm font-semibold text-app-primary-contrast hover:bg-app-primary-hover disabled:opacity-50"><Plus size={16} /> Buat draf ujian</button>
       </header>
       {notice && <div role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-app-text">{notice}</div>}
       {error && <div role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-app-text">{error}</div>}
 
-      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid items-start gap-4">
         <div className="min-w-0 rounded-2xl border border-app-border bg-app-surface">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-app-border px-4 py-4 sm:px-5">
             <div><h2 className="text-sm font-semibold text-app-text">Daftar ujian</h2><p className="mt-1 text-xs text-app-muted">{exams.length} ujian tercatat</p></div>
@@ -225,7 +232,9 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
           )}
         </div>
 
-        <form onSubmit={createExam} className="space-y-4 rounded-2xl border border-app-border bg-app-surface p-4 sm:p-5">
+        <dialog ref={createDialogRef} onClose={() => setShowCreateDialog(false)} onClick={(event) => { if (event.target === event.currentTarget) event.currentTarget.close(); }} className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-3xl overflow-y-auto rounded-xl border border-app-border bg-app-surface p-0 text-app-text shadow-xl backdrop:bg-slate-950/45">
+          <div className="flex justify-end px-4 pt-3"><button type="button" onClick={() => setShowCreateDialog(false)} aria-label="Tutup formulir ujian" className="inline-flex size-9 items-center justify-center rounded-md text-app-muted hover:bg-app-bg"><X size={18} /></button></div>
+          <form onSubmit={createExam} className="space-y-4 rounded-2xl border border-app-border bg-app-surface p-4 sm:p-5">
           <div><h2 className="text-sm font-semibold text-app-text">Buat draf ujian</h2><p className="mt-1 text-xs leading-5 text-app-muted">Saat draf dibuat, isi soal disalin menjadi snapshot. Penerbitan akan mengunci paket dan mendaftarkan siswa aktif.</p></div>
           <label className={labelClass}>Nama ujian<input name="name" required maxLength={150} placeholder="Penilaian Akhir Semester" className={inputClass} /></label>
           <label className={labelClass}>Jenis asesmen<select name="assessmentTypeId" required defaultValue="" className={inputClass}><option value="" disabled>Pilih jenis asesmen</option>{assessmentTypes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
@@ -258,6 +267,7 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
           <label className={labelClass}>Keterangan (opsional)<textarea name="description" rows={2} maxLength={1000} className={inputClass} /></label>
           <button type="submit" disabled={saving || !subjects.length || !assessmentTypes.length || !years.length} className="min-h-11 w-full rounded-lg bg-app-primary px-4 text-sm font-semibold text-app-primary-contrast disabled:cursor-not-allowed disabled:opacity-50">{saving ? "Menyimpan…" : "Simpan draf ujian"}</button>
         </form>
+        </dialog>
       </div>
     </section>
   );
