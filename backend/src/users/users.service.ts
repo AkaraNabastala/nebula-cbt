@@ -1,12 +1,13 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import argon2 from 'argon2';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { CreateUserDto } from './dto/create-user.dto.js';
-import { ListUsersQueryDto } from './dto/list-users-query.dto.js';
+import type { CreateUserDto } from './dto/create-user.dto.js';
+import type { ListUsersQueryDto } from './dto/list-users-query.dto.js';
 
 @Injectable()
 export class UsersService {
@@ -87,11 +88,11 @@ export class UsersService {
     const normalizedValue = identifier.toLowerCase();
 
     if (dto.identifierType === 'EMAIL' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)) {
-      throw new ConflictException('Format email tidak valid.');
+      throw new BadRequestException('Format email tidak valid.');
     }
 
     if (dto.identifierType === 'USERNAME' && !/^[a-zA-Z0-9._-]+$/.test(identifier)) {
-      throw new ConflictException('Username hanya boleh berisi huruf, angka, titik, garis bawah, dan tanda hubung.');
+      throw new BadRequestException('Username hanya boleh berisi huruf, angka, titik, garis bawah, dan tanda hubung.');
     }
 
     const passwordHash = await argon2.hash(dto.password, {
