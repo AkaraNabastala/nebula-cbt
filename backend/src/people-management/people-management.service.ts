@@ -186,22 +186,25 @@ export class PeopleManagementService {
 
   async updateTeacherAssignmentStatus(id: string, isActive: boolean, actor: Actor) {
     this.assertAdmin(actor);
-    const assignment = await this.prisma.teacherAssignment.findUnique({ where: { id } });
-    if (!assignment) throw new NotFoundException('Penugasan guru tidak ditemukan.');
-    const updated = await this.prisma.teacherAssignment.update({ where: { id }, data: { isActive } });
-    await this.prisma.auditLog.create({
-      data: {
-        actorUserId: actor.id,
-        action: 'TEACHER_ASSIGNMENT_STATUS_CHANGED',
-        entityType: 'TEACHER_ASSIGNMENT',
-        entityId: id,
-        description: `Status penugasan guru diubah menjadi ${isActive ? 'aktif' : 'nonaktif'}.`,
-        ipAddress: actor.ipAddress,
-        userAgent: actor.userAgent,
-        oldData: { isActive: assignment.isActive },
-        newData: { isActive },
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const assignment = await tx.teacherAssignment.findUnique({ where: { id } });
+      if (!assignment) throw new NotFoundException('Penugasan guru tidak ditemukan.');
+      if (assignment.isActive === isActive) return assignment;
+      const updated = await tx.teacherAssignment.update({ where: { id }, data: { isActive } });
+      await tx.auditLog.create({
+        data: {
+          actorUserId: actor.id,
+          action: 'TEACHER_ASSIGNMENT_STATUS_CHANGED',
+          entityType: 'TEACHER_ASSIGNMENT',
+          entityId: id,
+          description: `Status penugasan guru diubah menjadi ${isActive ? 'aktif' : 'nonaktif'}.`,
+          ipAddress: actor.ipAddress,
+          userAgent: actor.userAgent,
+          oldData: { isActive: assignment.isActive },
+          newData: { isActive },
+        },
+      });
+      return updated;
     });
-    return updated;
   }
 }
