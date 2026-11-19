@@ -90,7 +90,7 @@ export function DashboardHome({
         <div>
           <p className="text-sm font-semibold text-app-text">Informasi akses</p>
           <p className="mt-1 text-xs text-app-muted">
-            {user.permissions.length} izin tersedia untuk akun ini.
+            Navigasi dan fitur ditampilkan mengikuti hak akses akun Anda.
           </p>
         </div>
         <span className="inline-flex h-10 items-center gap-2 px-3 text-xs font-semibold text-app-primary">
