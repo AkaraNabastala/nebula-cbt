@@ -17,8 +17,8 @@ const sectionCopy: Record<AcademicSection, { title: string; description: string;
     empty: "Belum ada tahun ajaran. Tambahkan periode akademik pertama untuk mulai mengelola kelas.",
   },
   subjects: {
-    title: "Mata pelajaran",
-    description: "Kelola daftar mata pelajaran yang digunakan pada kelas, penugasan guru, dan bank soal.",
+    title: "Mata pelajaran / mata kuliah",
+    description: "Kelola mata pelajaran atau mata kuliah untuk penugasan pengajar, bank soal, dan ujian.",
     addLabel: "Tambah mata pelajaran",
     empty: "Belum ada mata pelajaran. Tambahkan mata pelajaran untuk mulai menyiapkan pembelajaran.",
   },
@@ -182,7 +182,7 @@ export function AcademicPage({ token, section }: { token: string | null; section
               <label className="block text-sm font-medium text-app-text">Tanggal akhir<input name="endDate" required type="date" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /></label>
             </div>
           </> : section === "subjects" ? <>
-            <label className="block text-sm font-medium text-app-text">Nama mata pelajaran<input name="name" required maxLength={120} placeholder="Matematika" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /></label>
+            <label className="block text-sm font-medium text-app-text">Nama mata pelajaran / mata kuliah<input name="name" required maxLength={120} placeholder="Matematika" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /></label>
             <label className="block text-sm font-medium text-app-text">Kode (opsional)<input name="code" maxLength={30} placeholder="MTK" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /></label>\n            <label className="block text-sm font-medium text-app-text">Kategori mata pelajaran<input name="category" maxLength={80} placeholder="Umum, Kejuruan, Produktif, Peminatan..." className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /><span className="mt-1 block text-xs text-app-muted">Kategori bebas ditentukan admin dan tidak bergantung pada jurusan.</span></label>
           </> : <>
             <label className="block text-sm font-medium text-app-text">Nama kelas<input name="name" required maxLength={80} placeholder="VII A" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text" /></label>
