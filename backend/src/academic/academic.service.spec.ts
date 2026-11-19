@@ -102,7 +102,7 @@ describe('AcademicService education structure', () => {
 
   it('locks the initial setup after an education level has been saved', async () => {
     vi.mocked(prisma.systemSetting.findUnique).mockResolvedValue({
-      value: { educationLevel: 'SMA/MA' },
+      value: { educationLevel: 'SMA/MA', institutionName: 'SMA Contoh' },
     } as never);
 
     await expect(service.updateEducationSettings({
