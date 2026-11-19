@@ -17,7 +17,7 @@ export class AcademicService {
 
   async getEducationSettings() {
     const setting = await this.prisma.systemSetting.findUnique({ where: { key: 'education_structure' } });
-    return setting?.value ?? { institutionType: 'SMA', educationLevel: 'SMA', departmentsEnabled: false, departments: [] };
+    return setting?.value ?? { institutionType: 'Sekolah / lembaga pendidikan', educationLevel: 'Belum ditentukan', departmentsEnabled: false, departments: [] };
   }
 
   async updateEducationSettings(input: unknown, actor: Actor) {
