@@ -40,6 +40,7 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
   const [banks, setBanks] = useState<Bank[]>([]);
   const [questionOptions, setQuestionOptions] = useState<QuestionOption[]>([]);
   const [selectedSubjectId, setSelectedSubjectId] = useState("");
+  const [selectedYearId, setSelectedYearId] = useState("");
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,6 +65,7 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
       ]);
       setAssessmentTypes(options.assessmentTypes);
       setYears(options.academicYears);
+      setSelectedYearId((current) => options.academicYears.some((year) => year.id === current) ? current : options.academicYears.find((year) => year.isActive)?.id ?? options.academicYears[0]?.id ?? "");
       setSubjects(options.subjects);
       setClasses(options.classes);
       setBanks(bankData);
@@ -82,6 +84,8 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
       setSelectedQuestionIds([]);
       return;
     }
+    setQuestionOptions([]);
+    setSelectedQuestionIds([]);
     try {
       const subjectBanks = banks.filter((bank) => bank.subjectId === subjectId);
       const lists = await Promise.all(subjectBanks.map((bank) =>
@@ -110,7 +114,8 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
   async function createExam(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!token) return;
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const startsAt = new Date(String(form.get("startsAt") || ""));
     const endsAt = new Date(String(form.get("endsAt") || ""));
     const classIds = form.getAll("classIds").map(String);
@@ -146,7 +151,7 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
         }),
       });
       setNotice(`Draf ujian "${result.name}" berhasil dibuat. Periksa jadwal dan peserta sebelum menerbitkan.`);
-      (event.currentTarget as HTMLFormElement).reset();
+      formElement.reset();
       setSelectedQuestionIds([]);
       await load();
     } catch (cause) {
@@ -172,10 +177,7 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
     }
   }
 
-  const eligibleClasses = classes.filter((schoolClass) => {
-    const yearId = document.getElementById("exam-academic-year") as HTMLSelectElement | null;
-    return !yearId?.value || schoolClass.academicYearId === yearId.value;
-  });
+  const eligibleClasses = classes.filter((schoolClass) => !selectedYearId || schoolClass.academicYearId === selectedYearId);
 
   return (
     <section className="space-y-6">
@@ -221,7 +223,7 @@ export function ExamOperationsPage({ token }: { token: string | null }) {
           <div><h2 className="text-sm font-semibold text-app-text">Buat draf ujian</h2><p className="mt-1 text-xs leading-5 text-app-muted">Saat draf dibuat, isi soal disalin menjadi snapshot. Penerbitan akan mengunci paket dan mendaftarkan siswa aktif.</p></div>
           <label className={labelClass}>Nama ujian<input name="name" required maxLength={150} placeholder="Penilaian Akhir Semester" className={inputClass} /></label>
           <label className={labelClass}>Jenis asesmen<select name="assessmentTypeId" required defaultValue="" className={inputClass}><option value="" disabled>Pilih jenis asesmen</option>{assessmentTypes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-          <label className={labelClass}>Tahun ajaran<select id="exam-academic-year" name="academicYearId" required defaultValue="" className={inputClass}><option value="" disabled>Pilih tahun ajaran</option>{years.map((year) => <option key={year.id} value={year.id}>{year.name}{year.isActive ? " (Aktif)" : ""}</option>)}</select></label>
+          <label className={labelClass}>Tahun ajaran<select id="exam-academic-year" name="academicYearId" required value={selectedYearId} onChange={(event) => setSelectedYearId(event.target.value)} className={inputClass}><option value="" disabled>Pilih tahun ajaran</option>{years.map((year) => <option key={year.id} value={year.id}>{year.name}{year.isActive ? " (Aktif)" : ""}</option>)}</select></label>
           <label className={labelClass}>Mata pelajaran<select name="subjectId" required value={selectedSubjectId} onChange={(event) => setSelectedSubjectId(event.target.value)} className={inputClass}><option value="" disabled>Pilih mata pelajaran</option>{subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}</select></label>
           <label className={labelClass}>Nama sesi<input name="sessionName" required maxLength={100} defaultValue="Sesi 1" className={inputClass} /></label>
           <div className="grid grid-cols-2 gap-3">
