@@ -41,6 +41,14 @@ npm run start:dev
 
 Perintah bootstrap akan meminta nama, email, dan password awal administrator di terminal. Password minimal 12 karakter. Perintah ini hanya dapat membuat administrator awal jika belum ada akun ADMIN; akun awal diwajibkan mengganti password saat login pertama.
 
+Jika password admin terlupa, gunakan skrip reset khusus (jangan jalankan bootstrap ulang):
+
+```bash
+npm run db:reset-admin-password -- email-admin
+```
+
+Skrip meminta password baru dua kali tanpa menampilkannya di terminal, memverifikasi akun tersebut memiliki role ADMIN, menyimpan hash Argon2id, mencabut sesi lama, mencatat audit log, dan mewajibkan penggantian password pada login berikutnya.
+
 API berjalan pada `http://localhost:3000`. Endpoint root `/` digunakan untuk pemeriksaan kesehatan API.
 
 ## Menjalankan frontend
