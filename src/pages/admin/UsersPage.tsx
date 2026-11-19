@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, useRef, type FormEvent } from "react";
 import { LockKeyhole, Plus, RefreshCw, Search, UserRound, Users, X } from "lucide-react";
 import { apiRequest } from "../../lib/api";
+import { toast } from "sonner";
 
 type UserStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED";
 type UserRole = { code: string; name: string };
@@ -32,7 +33,6 @@ export function UsersPage({ token }: { token: string | null }) {
   const [creating, setCreating] = useState(false);
   const [changingId, setChangingId] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const loadUsers = useCallback(async () => {
     if (!token) {
@@ -79,7 +79,6 @@ export function UsersPage({ token }: { token: string | null }) {
     };
     setCreating(true);
     setError("");
-    setNotice("");
     try {
       await apiRequest<UserRecord>("/users", { method: "POST", token, body: JSON.stringify(payload) });
       formElement.reset();
@@ -88,7 +87,7 @@ export function UsersPage({ token }: { token: string | null }) {
       setSearch("");
       setSearchInput("");
       setStatusFilter("");
-      setNotice("Akun berhasil dibuat. Pengguna wajib mengganti password saat login pertama.");
+      toast.success("Akun berhasil dibuat. Pengguna wajib mengganti password saat login pertama.");
       try {
         const refreshed = await apiRequest<UsersResponse>("/users?page=1&limit=20", { token });
         setUsers(refreshed.data);
@@ -110,10 +109,9 @@ export function UsersPage({ token }: { token: string | null }) {
     if (!window.confirm(`${nextStatus === "ACTIVE" ? "Aktifkan" : "Nonaktifkan"} akun ${user.fullName}?`)) return;
     setChangingId(user.id);
     setError("");
-    setNotice("");
     try {
       await apiRequest(`/users/${user.id}/status`, { method: "PATCH", token, body: JSON.stringify({ status: nextStatus }) });
-      setNotice(`Status akun ${user.fullName} sekarang ${statusLabels[nextStatus].toLowerCase()}.`);
+      toast.success(`Status akun ${user.fullName} sekarang ${statusLabels[nextStatus].toLowerCase()}.`);
       await loadUsers();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Status akun gagal diubah.");
@@ -139,8 +137,6 @@ export function UsersPage({ token }: { token: string | null }) {
           <Plus size={16} aria-hidden="true" /> Tambah pengguna
         </button>
       </div>
-
-      {notice && <p role="status" className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm text-app-text">{notice}</p>}
       {error && <div role="alert" className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-sm text-app-text"><span>{error}</span><button type="button" onClick={() => void loadUsers()} className="font-semibold underline underline-offset-2">Muat ulang</button></div>}
 
       <section className="overflow-hidden rounded-xl border border-app-border bg-app-surface">
