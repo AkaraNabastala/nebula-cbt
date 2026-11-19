@@ -87,7 +87,7 @@ export function QuestionsPage({ token }: { token: string | null }) {
   useEffect(() => { void Promise.resolve().then(loadBanks); }, [loadBanks]);
   useEffect(() => {
     if (selectedBankId) void Promise.resolve().then(() => loadQuestions(selectedBankId));
-    else setQuestions([]);
+    else void Promise.resolve().then(() => setQuestions([]));
   }, [selectedBankId, loadQuestions]);
 
   async function createBank(event: FormEvent<HTMLFormElement>) {
@@ -122,7 +122,8 @@ export function QuestionsPage({ token }: { token: string | null }) {
   async function createQuestion(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!token || !selectedBankId) return;
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const optionLines = lines(String(form.get("options") || ""));
     const payload: Record<string, unknown> = {
       type: questionType,
@@ -138,6 +139,8 @@ export function QuestionsPage({ token }: { token: string | null }) {
       }));
       payload.correctLabels = String(form.get("correctLabels") || "")
         .split(",").map((item) => item.trim().toUpperCase()).filter(Boolean);
+    } else if (questionType === "TRUE_FALSE") {
+      payload.correctLabels = [String(form.get("correctLabels") || "")].filter(Boolean);
     } else if (questionType === "SHORT_ANSWER") {
       payload.acceptedAnswers = lines(String(form.get("acceptedAnswers") || ""));
     } else if (questionType === "ESSAY") {
@@ -153,7 +156,7 @@ export function QuestionsPage({ token }: { token: string | null }) {
         token,
         body: JSON.stringify(payload),
       });
-      (event.currentTarget as HTMLFormElement).reset();
+      formElement.reset();
       setQuestionType("SINGLE_CHOICE");
       setNotice("Soal berhasil disimpan sebagai draf.");
       await loadQuestions(selectedBankId);
