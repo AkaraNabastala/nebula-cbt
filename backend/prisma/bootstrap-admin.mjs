@@ -20,6 +20,7 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const client = await pool.connect();
 try {
   await client.query("BEGIN");
+  await client.query("SELECT pg_advisory_xact_lock(492167730112)");
   const existing = await client.query(
     "SELECT 1 FROM user_roles ur JOIN roles r ON r.id = ur.role_id WHERE r.code = 'ADMIN' LIMIT 1",
   );
