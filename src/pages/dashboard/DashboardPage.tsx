@@ -90,7 +90,17 @@ export function DashboardPage({
               <LayoutDashboard size={17} />
               Ringkasan
             </button>
-            {role === "ADMIN" && (\n              <button type="button" onClick={() => setPage("academic")}\n                aria-current={page === "academic" ? "page" : undefined}\n                className={`flex h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-medium ${\n                  page === "academic" ? "bg-app-soft text-app-primary" : "text-app-muted hover:bg-app-bg hover:text-app-text"\n                }`}>\n                <GraduationCap size={17} />\n                Akademik dan Kelas\n              </button>\n            )}\n            {role === "ADMIN" && (
+            {role === "ADMIN" && (
+              <button type="button" onClick={() => setPage("academic")}
+                aria-current={page === "academic" ? "page" : undefined}
+                className={`flex h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-medium ${
+                  page === "academic" ? "bg-app-soft text-app-primary" : "text-app-muted hover:bg-app-bg hover:text-app-text"
+                }`}>
+                <GraduationCap size={17} />
+                Akademik dan Kelas
+              </button>
+            )}
+            {role === "ADMIN" && (
               <button type="button" onClick={() => setPage("users")}
                 aria-current={page === "users" ? "page" : undefined}
                 className={`flex h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-medium ${
@@ -192,6 +202,8 @@ export function DashboardPage({
             <AccountPage user={user} onChangePassword={onChangePassword} />
           ) : page === "users" && role === "ADMIN" ? (
             <UsersPage token={token} />
+          ) : page === "academic" && role === "ADMIN" ? (
+            <AcademicPage token={token} />
           ) : role === "ADMIN" ? (
             <AdminDashboardPage user={user} detail={detail} />
           ) : role === "TEACHER" ? (
