@@ -97,6 +97,9 @@ export class ExamOperationsService {
     if (Number.isNaN(startsAt.valueOf()) || Number.isNaN(endsAt.valueOf()) || startsAt >= endsAt) {
       throw new BadRequestException('Waktu selesai harus setelah waktu mulai.');
     }
+    if (dto.durationMinutes > Math.ceil((endsAt.getTime() - startsAt.getTime()) / 60000)) {
+      throw new BadRequestException('Durasi ujian tidak boleh melebihi rentang waktu sesi.');
+    }
     if (new Set(dto.classIds).size !== dto.classIds.length || new Set(dto.questionIds).size !== dto.questionIds.length) {
       throw new BadRequestException('Daftar kelas dan soal tidak boleh berisi duplikat.');
     }
@@ -155,9 +158,17 @@ export class ExamOperationsService {
       throw new BadRequestException('Setiap soal harus memiliki kunci jawaban atau pedoman penilaian.');
     }
 
+    const questionOrder = new Map(dto.questionIds.map((id, index) => [id, index]));
+    questions.sort((left, right) => (questionOrder.get(left.id) ?? 0) - (questionOrder.get(right.id) ?? 0));
     const maxScore = questions.reduce((total, question) => total + Number(question.defaultPoints), 0);
-    const startDate = new Date(Date.UTC(startsAt.getUTCFullYear(), startsAt.getUTCMonth(), startsAt.getUTCDate()));
-    const endDate = new Date(Date.UTC(endsAt.getUTCFullYear(), endsAt.getUTCMonth(), endsAt.getUTCDate()));
+    const schoolSettings = await this.prisma.schoolSettings.findUnique({ where: { id: 'main' }, select: { timezone: true } });
+    const timezone = schoolSettings?.timezone || 'Asia/Jakarta';
+    const schoolDate = (value: Date) => {
+      const parts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(value);
+      return new Date(`${parts}T00:00:00.000Z`);
+    };
+    const startDate = schoolDate(startsAt);
+    const endDate = schoolDate(endsAt);
     if (startDate < year.startDate || endDate > year.endDate) {
       throw new BadRequestException('Jadwal ujian harus berada dalam rentang tahun ajaran yang dipilih.');
     }
