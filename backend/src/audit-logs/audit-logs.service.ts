@@ -22,10 +22,16 @@ export class AuditLogsService {
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
-        include: { actorUser: { select: { id: true, fullName: true } } },
+        include: { actor: { select: { id: true, fullName: true } } },
       }),
       this.prisma.auditLog.count({ where }),
     ]);
-    return { items, total, page, limit, pageCount: Math.ceil(total / limit) };
+    return {
+      items: items.map(({ actor, ...item }) => ({ ...item, actorUser: actor })),
+      total,
+      page,
+      limit,
+      pageCount: Math.ceil(total / limit),
+    };
   }
 }
