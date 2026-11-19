@@ -16,6 +16,7 @@ import { PermissionGuard } from '../auth/guards/permission.guard.js';
 import { RequirePermissions } from '../auth/decorators/require-permissions.decorator.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { ListUsersQueryDto } from './dto/list-users-query.dto.js';
+import { UpdateUserStatusDto } from './dto/update-user-status.dto.js';
 import { UsersService } from './users.service.js';
 
 @Controller('users')
@@ -43,10 +44,10 @@ export class UsersController {
   @RequirePermissions('users.status.manage')
   updateStatus(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body('status') status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED',
+    @Body() dto: UpdateUserStatusDto,
     @Req() request: AuthenticatedRequest,
   ) {
-    return this.usersService.updateStatus(id, status, {
+    return this.usersService.updateStatus(id, dto.status, {
       id: request.user!.id,
       ipAddress: request.ip,
       userAgent: request.get('user-agent'),
