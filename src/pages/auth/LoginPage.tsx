@@ -37,24 +37,24 @@ export function LoginPage({
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-app-bg">
-      <header className="flex items-center justify-between px-5 py-5 sm:px-9">
+    <main className="flex min-h-dvh flex-col bg-app-bg">
+      <header className="flex h-16 shrink-0 items-center justify-between px-5 sm:px-8">
         <Brand />
         <span className="text-xs font-medium text-app-muted">
           PLATFORM UJIAN DIGITAL
         </span>
       </header>
 
-      <section className="flex flex-1 items-center justify-center px-5 py-9">
+      <section className="flex flex-1 items-center justify-center px-5 py-4">
         <div className="w-full max-w-[440px]">
-          <div className="mb-8">
+          <div className="mb-5">
             <p className="mb-3 text-xs font-semibold tracking-[0.14em] text-[#318BCB]">
               NEBULA CBT
             </p>
-            <h1 className="text-3xl font-bold tracking-tight text-app-text sm:text-[36px]">
+            <h1 className="text-2xl font-semibold tracking-tight text-app-text sm:text-[30px]">
               Selamat datang.
             </h1>
-            <p className="mt-3 max-w-sm text-sm leading-6 text-app-muted">
+            <p className="mt-2 max-w-sm text-sm leading-5 text-app-muted">
               Masuk menggunakan akun yang telah terdaftar untuk melanjutkan
               ke ruang kerja Anda.
             </p>
@@ -62,7 +62,7 @@ export function LoginPage({
 
           <form
             onSubmit={submit}
-            className="rounded-2xl border border-app-border bg-app-surface p-6 sm:p-8"
+            className="rounded-xl border border-app-border bg-app-surface p-5 sm:p-6"
           >
             {notice && (
               <div
@@ -73,13 +73,13 @@ export function LoginPage({
               </div>
             )}
 
-            <div className="space-y-5">
+            <div className="space-y-4">
               <div>
                 <label
                   htmlFor="identifier"
                   className="mb-2 block text-sm font-medium text-app-text"
                 >
-                  Username atau email
+                  Username, NIPD, NIS, atau email
                 </label>
                 <input
                   id="identifier"
@@ -90,7 +90,7 @@ export function LoginPage({
                   maxLength={191}
                   value={identifier}
                   onChange={(event) => setIdentifier(event.target.value)}
-                  placeholder="Masukkan username atau email"
+                  placeholder="Masukkan username, NIPD, NIS, atau email"
                   className="h-12 w-full rounded-xl border border-app-border bg-app-input px-4 text-sm text-app-text placeholder:text-app-muted focus:border-[#318BCB] focus:outline-none focus:ring-2 focus:ring-[#318BCB]/20"
                 />
               </div>
@@ -136,7 +136,7 @@ export function LoginPage({
               </div>
             </div>
 
-            <label className="mt-5 flex w-fit cursor-pointer items-center gap-2 text-sm text-app-muted">
+            <label className="mt-4 flex w-fit cursor-pointer items-center gap-2 text-sm text-app-muted">
               <input
                 type="checkbox"
                 checked={remember}
@@ -158,14 +158,14 @@ export function LoginPage({
             <button
               type="submit"
               disabled={busy}
-              className="mt-7 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#183B5B] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#245477] disabled:opacity-60"
+              className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#183B5B] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#245477] disabled:opacity-60"
             >
               {busy ? "Memeriksa akun..." : "Masuk ke Nebula CBT"}
               {!busy && <ChevronRight size={17} />}
             </button>
           </form>
 
-          <p className="mt-7 text-center text-xs leading-6 text-app-muted">
+          <p className="mt-4 text-center text-xs leading-5 text-app-muted">
             Nebula CBT <span className="mx-2">·</span> AkaraNabastala
           </p>
         </div>
