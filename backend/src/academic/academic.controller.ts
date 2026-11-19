@@ -19,6 +19,10 @@ export class AcademicController {
     return { id: request.user!.id, ipAddress: request.ip, userAgent: request.get('user-agent') };
   }
 
+  @Get('branding')
+  @RequirePermissions('dashboard.read')
+  getInstitutionBranding() { return this.academic.getInstitutionBranding(); }
+
   @Get('education-settings')
   @RequirePermissions('academic_years.read')
   getEducationSettings() { return this.academic.getEducationSettings(); }
