@@ -45,6 +45,7 @@ export function QuestionsPage({ token }: { token: string | null }) {
   const [questionType, setQuestionType] = useState<QuestionType>("SINGLE_CHOICE");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [updatingQuestionId, setUpdatingQuestionId] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
@@ -168,6 +169,27 @@ export function QuestionsPage({ token }: { token: string | null }) {
     }
   }
 
+
+  async function changeQuestionStatus(questionId: string, status: "REVIEWED" | "PUBLISHED" | "ARCHIVED") {
+    if (!token || !selectedBankId) return;
+    setUpdatingQuestionId(questionId);
+    setError("");
+    setNotice("");
+    try {
+      await apiRequest(`/question-banks/${selectedBankId}/questions/${questionId}/status`, {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({ status }),
+      });
+      setNotice(status === "REVIEWED" ? "Soal ditandai telah ditinjau." : status === "PUBLISHED" ? "Soal diterbitkan dan siap dipilih ke paket ujian." : "Soal diarsipkan.");
+      await loadQuestions(selectedBankId);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Status soal gagal diperbarui.");
+    } finally {
+      setUpdatingQuestionId("");
+    }
+  }
+
   const selectedBank = banks.find((bank) => bank.id === selectedBankId);
 
   return (
@@ -227,6 +249,11 @@ export function QuestionsPage({ token }: { token: string | null }) {
                     {question.answerKey?.answerData.acceptedAnswers && <p className="mt-2 text-xs text-app-text">Jawaban diterima: {question.answerKey.answerData.acceptedAnswers.join(" · ")}</p>}
                     {question.answerKey?.gradingGuide && <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-app-muted">Pedoman: {question.answerKey.gradingGuide}</p>}
                     {question.explanation && <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-app-muted">Pembahasan: {question.explanation}</p>}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {question.status === "DRAFT" && <button type="button" disabled={updatingQuestionId === question.id} onClick={() => void changeQuestionStatus(question.id, "REVIEWED")} className="min-h-10 rounded-lg border border-app-border px-3 text-xs font-medium text-app-text disabled:opacity-50">Tandai ditinjau</button>}
+                      {question.status === "REVIEWED" && <button type="button" disabled={updatingQuestionId === question.id} onClick={() => void changeQuestionStatus(question.id, "PUBLISHED")} className="min-h-10 rounded-lg bg-app-primary px-3 text-xs font-semibold text-app-primary-contrast disabled:opacity-50">Terbitkan soal</button>}
+                      {question.status === "PUBLISHED" && <button type="button" disabled={updatingQuestionId === question.id} onClick={() => void changeQuestionStatus(question.id, "ARCHIVED")} className="min-h-10 rounded-lg border border-app-border px-3 text-xs font-medium text-app-text disabled:opacity-50">Arsipkan</button>}
+                    </div>
                   </li>
                 ))}
               </ol>
