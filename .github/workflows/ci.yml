@@ -41,6 +41,7 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
       - run: node --check prisma/bootstrap-admin.mjs
+      - run: node --check prisma/reset-admin-password.mjs
       - run: node --check prisma/seed.mjs
       - run: npx prisma generate --config prisma7.config.ts
       - run: npm run lint
