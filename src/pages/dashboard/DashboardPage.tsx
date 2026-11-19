@@ -20,8 +20,9 @@ import { QuestionsPage } from "../guru/QuestionsPage";
 import { ExamOperationsPage } from "../guru/ExamOperationsPage";
 import { StudentExamsPage } from "../siswa/StudentExamsPage";
 import { ResultsPage } from "../guru/ResultsPage";
+import { PeopleManagementPage } from "../admin/PeopleManagementPage";
 
-export type DashboardSection = "dashboard" | "account" | "users" | "academic" | "questions" | "exams" | "results";
+export type DashboardSection = "dashboard" | "account" | "users" | "academic" | "questions" | "exams" | "results" | "people";
 
 const roleDetails: Record<string, {
   label: string;
@@ -108,6 +109,7 @@ export function DashboardPage({
               </button>
             )}
             {(role === "ADMIN" || role === "TEACHER") && <button type="button" onClick={() => setPage("results")} aria-current={page === "results" ? "page" : undefined} className={navClass(page === "results")}><GraduationCap size={17} /> Penilaian dan hasil</button>}
+            {role === "ADMIN" && <button type="button" onClick={() => setPage("people")} aria-current={page === "people" ? "page" : undefined} className={navClass(page === "people")}><Users size={17} /> Siswa dan penugasan</button>}
             {role === "STUDENT" && <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={navClass(page === "exams")}><ClipboardList size={17} /> Ujian saya</button>}
             <button type="button" onClick={() => setPage("account")} aria-current={page === "account" ? "page" : undefined} className={navClass(page === "account")}>
               <UserRound size={17} /> Akun saya
@@ -126,7 +128,7 @@ export function DashboardPage({
           <div className="hidden text-xs text-app-muted lg:block">
             Workspace <span className="mx-2">/</span>
             <span className="font-medium text-app-text">
-              {page === "dashboard" ? "Ringkasan" : page === "users" ? "Pengguna dan Hak Akses" : page === "academic" ? "Akademik dan Kelas" : page === "questions" ? "Bank soal" : page === "exams" ? (role === "STUDENT" ? "Ujian saya" : "Operasional ujian") : page === "results" ? "Penilaian dan hasil" : "Akun saya"}
+              {page === "dashboard" ? "Ringkasan" : page === "users" ? "Pengguna dan Hak Akses" : page === "academic" ? "Akademik dan Kelas" : page === "questions" ? "Bank soal" : page === "exams" ? (role === "STUDENT" ? "Ujian saya" : "Operasional ujian") : page === "results" ? "Penilaian dan hasil" : page === "people" ? "Siswa dan penugasan" : "Akun saya"}
             </span>
           </div>
           <div className="ml-auto flex items-center gap-3">
@@ -144,6 +146,7 @@ export function DashboardPage({
           {role === "ADMIN" && <button type="button" onClick={() => setPage("academic")} aria-current={page === "academic" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "academic" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Akademik</button>}
           {role === "ADMIN" && <button type="button" onClick={() => setPage("users")} aria-current={page === "users" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "users" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Pengguna</button>}
           {(role === "ADMIN" || role === "TEACHER") && <button type="button" onClick={() => setPage("results")} aria-current={page === "results" ? "page" : undefined} className="min-h-11 rounded-lg px-3 text-xs font-medium text-app-muted">Hasil</button>}
+          {role === "ADMIN" && <button type="button" onClick={() => setPage("people")} aria-current={page === "people" ? "page" : undefined} className="min-h-11 rounded-lg px-3 text-xs font-medium text-app-muted">Siswa dan penugasan</button>}
           {role === "STUDENT" && <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className="min-h-11 rounded-lg px-3 text-xs font-medium text-app-muted">Ujian saya</button>}
           <button type="button" onClick={() => setPage("account")} aria-current={page === "account" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "account" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Akun saya</button>
         </nav>
@@ -156,6 +159,7 @@ export function DashboardPage({
                   : page === "exams" && (role === "ADMIN" || role === "TEACHER") ? <ExamOperationsPage token={token} />
                     : page === "exams" && role === "STUDENT" ? <StudentExamsPage token={token} />
                       : page === "results" && (role === "ADMIN" || role === "TEACHER") ? <ResultsPage token={token} />
+                    : page === "people" && role === "ADMIN" ? <PeopleManagementPage token={token} />
                     : role === "ADMIN" ? <AdminDashboardPage user={user} detail={detail} />
                     : role === "TEACHER" ? <GuruDashboardPage user={user} detail={detail} />
                       : <SiswaDashboardPage user={user} detail={detail} />}
