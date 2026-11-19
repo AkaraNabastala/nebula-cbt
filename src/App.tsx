@@ -35,6 +35,8 @@ function App() {
           "/admin/questions",
           "/admin/exams",
           "/admin/results",
+          "/admin/enrollments",
+          "/admin/teacher-assignments",
           "/admin/people",
           "/admin/audit-logs",
         ])
@@ -118,8 +120,10 @@ function App() {
               ? "exams"
               : pathname === "/admin/results" || pathname === "/guru/results"
                 ? "results"
-                : pathname === "/admin/people"
-                  ? "people"
+                : pathname === "/admin/enrollments" || pathname === "/admin/people"
+                  ? "enrollments"
+                  : pathname === "/admin/teacher-assignments"
+                    ? "teacherAssignments"
                   : pathname === "/admin/audit-logs"
                     ? "audit"
                     : "dashboard";
@@ -139,7 +143,8 @@ function App() {
           questions: role === "ADMIN" ? "/admin/questions" : "/guru/questions",
           exams: role === "ADMIN" ? "/admin/exams" : role === "TEACHER" ? "/guru/exams" : "/siswa/exams",
           results: role === "ADMIN" ? "/admin/results" : "/guru/results",
-          people: "/admin/people",
+          enrollments: "/admin/enrollments",
+          teacherAssignments: "/admin/teacher-assignments",
           audit: "/admin/audit-logs",
           dashboard: dashboardPath,
         } as const;
