@@ -176,7 +176,8 @@ export function UsersPage({ token }: { token: string | null }) {
             <label htmlFor="user-role" className="text-sm font-medium text-app-text">Role<select id="user-role" name="roleCode" className="mt-1.5 min-h-10 w-full rounded-lg border border-app-border bg-app-input px-3 text-sm text-app-text"><option value="STUDENT">Siswa</option><option value="TEACHER">Guru</option><option value="ADMIN">Administrator</option></select></label>
             <div className="flex justify-end gap-2 border-t border-app-border pt-4 sm:col-span-2"><button type="button" onClick={() => setIsCreating(false)} className="min-h-10 rounded-lg border border-app-border px-4 text-sm font-medium text-app-text hover:bg-app-bg">Batal</button><button type="submit" disabled={creating} className="min-h-10 rounded-lg bg-app-primary px-4 text-sm font-semibold text-app-primary-contrast hover:bg-app-primary-hover disabled:opacity-50">{creating ? "Menyimpan..." : "Simpan akun"}</button></div>
           </form>
-        </div>\n      </dialog>}
+        </div>
+      </dialog>}
     </section>
   );
 }
