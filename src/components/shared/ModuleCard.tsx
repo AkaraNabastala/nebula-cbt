@@ -1,0 +1,27 @@
+import type { ReactNode } from "react";
+
+export function ModuleCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <article className="flex min-h-36 gap-4 rounded-2xl border border-app-border bg-app-surface p-5">
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-app-soft text-[#318BCB]">
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <h3 className="text-sm font-semibold text-app-text">{title}</h3>
+        <p className="mt-2 text-xs leading-5 text-app-muted">{description}</p>
+        <span className="mt-4 inline-flex items-center gap-1.5 text-[11px] font-medium text-app-muted">
+          <span className="size-1.5 rounded-full bg-app-muted" />
+          Belum diaktifkan
+        </span>
+      </div>
+    </article>
+  );
+}

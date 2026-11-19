@@ -1,0 +1,1232 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum UserCategory {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+model SchoolSettings {
+  id                String                  @id @default("main") @db.VarChar(20)
+  name              String                  @db.VarChar(150)
+  npsn              String?                 @db.VarChar(20)
+  address           String?                 @db.Text
+  phone             String?                 @db.VarChar(30)
+  email             String?                 @db.VarChar(150)
+  logoPath          String?                 @map("logo_path") @db.VarChar(255)
+  timezone          String                  @default("Asia/Jakarta") @db.VarChar(50)
+  createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
+  documentTemplates DocumentTemplate[]
+  documentSettings  SchoolDocumentSetting[]
+
+  @@map("school_settings")
+}
+
+model User {
+  id                 String     @id @default(uuid()) @db.Uuid
+  fullName           String     @map("full_name") @db.VarChar(150)
+  passwordHash       String     @map("password_hash") @db.VarChar(255)
+  status             UserStatus @default(ACTIVE)
+  mustChangePassword Boolean    @default(true) @map("must_change_password")
+  tokenVersion       Int        @default(0) @map("token_version")
+  lastLoginAt        DateTime?  @map("last_login_at") @db.Timestamptz(3)
+  createdAt          DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  identifiers    UserIdentifier[]
+  userRoles      UserRole[]
+  studentProfile StudentProfile?
+  teacherProfile TeacherProfile?
+
+  createdQuestionBanks         QuestionBank[]
+  createdQuestions             Question[]
+  createdExamPapers            ExamPaper[]
+  createdAssessmentEvents      AssessmentEvent[]
+  createdExams                 Exam[]
+  createdExamResults           ExamResult[]
+  createdAssessmentThresholds  AssessmentThreshold[]
+  scoreAdjustmentRuns          ScoreAdjustmentRun[]
+  attemptRecoveryActions       AttemptRecoveryEvent[]
+  createdRankingConfigurations RankingConfiguration[]
+  generatedRankingSnapshots    RankingSnapshot[]
+  examCollaborations           ExamCollaborator[]
+  eventCollaborations          AssessmentEventCollaborator[]
+  proctorAssignmentsCreated    ProctorAssignment[]           @relation("ProctorAssignmentCreator")
+  createdDocumentTemplates     DocumentTemplate[]
+  auditLogs                    AuditLog[]
+  updatedSystemSettings        SystemSetting[]
+  updatedDocumentSettings      SchoolDocumentSetting[]       @relation("DocumentSettingUpdater")
+  createdGradingScales         GradingScale[]
+
+  @@map("users")
+}
+
+model UserIdentifier {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @map("user_id") @db.Uuid
+  identifierType  String    @map("identifier_type") @db.VarChar(40)
+  identifierValue String    @map("identifier_value") @db.VarChar(191)
+  normalizedValue String    @unique @map("normalized_value") @db.VarChar(191)
+  isPrimary       Boolean   @default(false) @map("is_primary")
+  verifiedAt      DateTime? @map("verified_at") @db.Timestamptz(3)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([identifierType])
+  @@map("user_identifiers")
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique @db.VarChar(40)
+  name        String   @db.VarChar(80)
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  userRoles   UserRole[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  userId     String   @map("user_id") @db.Uuid
+  roleId     String   @map("role_id") @db.Uuid
+  assignedAt DateTime @default(now()) @map("assigned_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@id([userId, roleId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+model LoginPolicy {
+  id             String       @id @default(uuid()) @db.Uuid
+  category       UserCategory
+  identifierType String       @map("identifier_type") @db.VarChar(40)
+  isEnabled      Boolean      @default(true) @map("is_enabled")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@unique([category, identifierType])
+  @@map("login_policies")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+model StudentProfile {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @unique @map("user_id") @db.Uuid
+  gender        Gender?
+  birthPlace    String?   @map("birth_place") @db.VarChar(100)
+  birthDate     DateTime? @map("birth_date") @db.Date
+  address       String?   @db.Text
+  guardianName  String?   @map("guardian_name") @db.VarChar(150)
+  guardianPhone String?   @map("guardian_phone") @db.VarChar(30)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user                 User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enrollments          StudentClass[]
+  examParticipants     ExamParticipant[]
+  rankingSnapshotItems RankingSnapshotItem[]
+  assessmentTokens     AssessmentParticipantToken[]
+
+  @@map("student_profiles")
+}
+
+model TeacherProfile {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @unique @map("user_id") @db.Uuid
+  gender     Gender?
+  birthPlace String?   @map("birth_place") @db.VarChar(100)
+  birthDate  DateTime? @map("birth_date") @db.Date
+  address    String?   @db.Text
+  phone      String?   @db.VarChar(30)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  homeroomClasses    SchoolClass[]       @relation("HomeroomTeacher")
+  teacherAssignments TeacherAssignment[]
+  proctorAssignments ProctorAssignment[]
+
+  @@map("teacher_profiles")
+}
+
+model AcademicYear {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique @db.VarChar(30)
+  startDate DateTime @map("start_date") @db.Date
+  endDate   DateTime @map("end_date") @db.Date
+  isActive  Boolean  @default(false) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  classes               SchoolClass[]
+  assessmentEvents      AssessmentEvent[]
+  assessmentThresholds  AssessmentThreshold[]
+  examResults           ExamResult[]
+  scoreAdjustmentRuns   ScoreAdjustmentRun[]
+  rankingConfigurations RankingConfiguration[]
+  gradingScales         GradingScale[]
+
+  @@map("academic_years")
+}
+
+model SchoolClass {
+  id                String   @id @default(uuid()) @db.Uuid
+  name              String   @db.VarChar(80)
+  gradeLevel        Int      @map("grade_level")
+  academicYearId    String   @map("academic_year_id") @db.Uuid
+  homeroomTeacherId String?  @map("homeroom_teacher_id") @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  academicYear          AcademicYear           @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  homeroomTeacher       TeacherProfile?        @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id], onDelete: SetNull)
+  enrollments           StudentClass[]
+  teacherAssignments    TeacherAssignment[]
+  examScheduleClasses   ExamScheduleClass[]
+  examParticipants      ExamParticipant[]
+  assessmentThresholds  AssessmentThreshold[]
+  examResults           ExamResult[]
+  scoreAdjustmentRuns   ScoreAdjustmentRun[]
+  rankingConfigurations RankingConfiguration[]
+  rankingSnapshotItems  RankingSnapshotItem[]
+
+  @@unique([name, academicYearId])
+  @@index([academicYearId])
+  @@index([homeroomTeacherId])
+  @@map("classes")
+}
+
+model Subject {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String?  @unique @db.VarChar(30)
+  name      String   @db.VarChar(120)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  teacherAssignments           TeacherAssignment[]
+  questionBanks                QuestionBank[]
+  examPapers                   ExamPaper[]
+  exams                        Exam[]
+  assessmentThresholds         AssessmentThreshold[]
+  examResults                  ExamResult[]
+  scoreAdjustmentRuns          ScoreAdjustmentRun[]
+  singleSubjectRankings        RankingConfiguration[]
+  rankingConfigurationSubjects RankingConfigurationSubject[]
+  gradingScales                GradingScale[]
+
+  @@map("subjects")
+}
+
+model StudentClass {
+  id               String    @id @default(uuid()) @db.Uuid
+  studentProfileId String    @map("student_profile_id") @db.Uuid
+  classId          String    @map("class_id") @db.Uuid
+  joinedAt         DateTime  @default(now()) @map("joined_at") @db.Timestamptz(3)
+  leftAt           DateTime? @map("left_at") @db.Timestamptz(3)
+
+  student StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Restrict)
+  class   SchoolClass    @relation(fields: [classId], references: [id], onDelete: Restrict)
+
+  @@unique([studentProfileId, classId])
+  @@index([classId])
+  @@map("student_classes")
+}
+
+model TeacherAssignment {
+  id               String   @id @default(uuid()) @db.Uuid
+  teacherProfileId String   @map("teacher_profile_id") @db.Uuid
+  subjectId        String   @map("subject_id") @db.Uuid
+  classId          String   @map("class_id") @db.Uuid
+  isActive         Boolean  @default(true) @map("is_active")
+  assignedAt       DateTime @default(now()) @map("assigned_at") @db.Timestamptz(3)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  teacher TeacherProfile @relation(fields: [teacherProfileId], references: [id], onDelete: Restrict)
+  subject Subject        @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  class   SchoolClass    @relation(fields: [classId], references: [id], onDelete: Restrict)
+
+  @@unique([teacherProfileId, subjectId, classId])
+  @@index([teacherProfileId])
+  @@index([subjectId, classId])
+  @@index([classId])
+  @@map("teacher_assignments")
+}
+
+enum QuestionType {
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+  ESSAY
+}
+
+enum QuestionDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum QuestionStatus {
+  DRAFT
+  REVIEWED
+  PUBLISHED
+  ARCHIVED
+}
+
+model QuestionBank {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  subjectId   String   @db.Uuid
+  createdById String   @db.Uuid
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subject   Subject    @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  createdBy User       @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  questions Question[]
+
+  @@unique([subjectId, name])
+  @@index([subjectId])
+  @@index([createdById])
+  @@map("question_banks")
+}
+
+model Question {
+  id             String             @id @default(uuid()) @db.Uuid
+  questionBankId String             @db.Uuid
+  createdById    String             @db.Uuid
+  type           QuestionType
+  difficulty     QuestionDifficulty @default(MEDIUM)
+  content        Json
+  explanation    String?
+  defaultPoints  Decimal            @default(1.00) @db.Decimal(8, 2)
+  status         QuestionStatus     @default(DRAFT)
+  reviewedAt     DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  questionBank     QuestionBank        @relation(fields: [questionBankId], references: [id], onDelete: Restrict)
+  createdBy        User                @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  options          QuestionOption[]
+  answerKey        QuestionAnswerKey?
+  usedInExamPapers ExamPaperQuestion[]
+
+  @@index([questionBankId, status])
+  @@index([createdById])
+  @@index([type])
+  @@map("questions")
+}
+
+model QuestionOption {
+  id         String   @id @default(uuid()) @db.Uuid
+  questionId String   @db.Uuid
+  label      String
+  content    Json
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, label])
+  @@unique([questionId, sortOrder])
+  @@map("question_options")
+}
+
+model QuestionAnswerKey {
+  id           String   @id @default(uuid()) @db.Uuid
+  questionId   String   @unique @db.Uuid
+  answerData   Json
+  gradingGuide String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("question_answer_keys")
+}
+
+enum ExamPaperStatus {
+  DRAFT
+  REVIEWED
+  PUBLISHED
+  ARCHIVED
+}
+
+model ExamPaper {
+  id               String          @id @default(uuid()) @db.Uuid
+  versionGroupId   String          @default(uuid()) @db.Uuid
+  version          Int             @default(1)
+  name             String
+  description      String?
+  subjectId        String          @db.Uuid
+  createdById      String          @db.Uuid
+  status           ExamPaperStatus @default(DRAFT)
+  totalQuestions   Int             @default(0)
+  maxScore         Decimal         @default(0) @db.Decimal(10, 2)
+  shuffleQuestions Boolean         @default(false)
+  shuffleOptions   Boolean         @default(false)
+  publishedAt      DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  subject              Subject             @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  createdBy            User                @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  questions            ExamPaperQuestion[]
+  defaultForSchedules  ExamSchedule[]      @relation("DefaultExamPaper")
+  assignedParticipants ExamParticipant[]   @relation("ParticipantExamPaper")
+
+  @@unique([versionGroupId, version])
+  @@index([subjectId, status])
+  @@index([createdById])
+  @@map("exam_papers")
+}
+
+model ExamPaperQuestion {
+  id                String   @id @default(uuid()) @db.Uuid
+  examPaperId       String   @db.Uuid
+  sourceQuestionId  String?  @db.Uuid
+  questionSnapshot  Json
+  answerKeySnapshot Json
+  points            Decimal  @db.Decimal(8, 2)
+  sortOrder         Int
+  createdAt         DateTime @default(now())
+
+  examPaper      ExamPaper @relation(fields: [examPaperId], references: [id], onDelete: Cascade)
+  sourceQuestion Question? @relation(fields: [sourceQuestionId], references: [id], onDelete: SetNull)
+
+  attemptAnswers AttemptAnswer[]
+
+  @@unique([examPaperId, sortOrder])
+  @@index([sourceQuestionId])
+  @@map("exam_paper_questions")
+}
+
+enum AssessmentEventStatus {
+  DRAFT
+  PUBLISHED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum ExamStatus {
+  DRAFT
+  READY
+  PUBLISHED
+  COMPLETED
+  CANCELLED
+}
+
+enum ExamScheduleStatus {
+  DRAFT
+  PUBLISHED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ExamParticipantStatus {
+  REGISTERED
+  CHECKED_IN
+  IN_PROGRESS
+  SUBMITTED
+  ABSENT
+}
+
+model AssessmentType {
+  id          String   @id @default(uuid()) @db.Uuid
+  code        String   @unique
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  events AssessmentEvent[]
+
+  @@map("assessment_types")
+}
+
+model AssessmentEvent {
+  id               String                @id @default(uuid()) @db.Uuid
+  name             String
+  description      String?
+  assessmentTypeId String                @db.Uuid
+  academicYearId   String                @db.Uuid
+  startDate        DateTime              @db.Date
+  endDate          DateTime              @db.Date
+  status           AssessmentEventStatus @default(DRAFT)
+  createdById      String                @db.Uuid
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+
+  assessmentType    AssessmentType                @relation(fields: [assessmentTypeId], references: [id], onDelete: Restrict)
+  academicYear      AcademicYear                  @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  createdBy         User                          @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  exams             Exam[]
+  collaborators     AssessmentEventCollaborator[]
+  cardSetting       AssessmentCardSetting?
+  participantTokens AssessmentParticipantToken[]
+
+  @@index([academicYearId, status])
+  @@index([assessmentTypeId])
+  @@index([startDate, endDate])
+  @@map("assessment_events")
+}
+
+model Exam {
+  id                String     @id @default(uuid()) @db.Uuid
+  assessmentEventId String     @db.Uuid
+  subjectId         String     @db.Uuid
+  name              String
+  description       String?
+  status            ExamStatus @default(DRAFT)
+  createdById       String     @db.Uuid
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  assessmentEvent AssessmentEvent    @relation(fields: [assessmentEventId], references: [id], onDelete: Restrict)
+  subject         Subject            @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  createdBy       User               @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  schedules       ExamSchedule[]
+  collaborators   ExamCollaborator[]
+
+  @@index([assessmentEventId])
+  @@index([subjectId])
+  @@index([status])
+  @@map("exams")
+}
+
+model SchoolRoom {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  description String?
+  capacity    Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  examScheduleRooms ExamScheduleRoom[]
+
+  @@map("school_rooms")
+}
+
+model ExamSchedule {
+  id                 String             @id @default(uuid()) @db.Uuid
+  examId             String             @db.Uuid
+  defaultExamPaperId String?            @db.Uuid
+  sessionName        String
+  sessionNumber      Int
+  startsAt           DateTime
+  endsAt             DateTime
+  durationMinutes    Int
+  status             ExamScheduleStatus @default(DRAFT)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  exam             Exam       @relation(fields: [examId], references: [id], onDelete: Restrict)
+  defaultExamPaper ExamPaper? @relation("DefaultExamPaper", fields: [defaultExamPaperId], references: [id], onDelete: Restrict)
+
+  scheduleClasses    ExamScheduleClass[]
+  scheduleRooms      ExamScheduleRoom[]
+  participants       ExamParticipant[]
+  proctorAssignments ProctorAssignment[]
+
+  @@index([examId, startsAt])
+  @@index([status])
+  @@map("exam_schedules")
+}
+
+model ExamScheduleClass {
+  id             String   @id @default(uuid()) @db.Uuid
+  examScheduleId String   @db.Uuid
+  schoolClassId  String   @db.Uuid
+  createdAt      DateTime @default(now())
+
+  examSchedule ExamSchedule @relation(fields: [examScheduleId], references: [id], onDelete: Cascade)
+  schoolClass  SchoolClass  @relation(fields: [schoolClassId], references: [id], onDelete: Restrict)
+
+  @@unique([examScheduleId, schoolClassId])
+  @@index([schoolClassId])
+  @@map("exam_schedule_classes")
+}
+
+model ExamScheduleRoom {
+  id             String   @id @default(uuid()) @db.Uuid
+  examScheduleId String   @db.Uuid
+  schoolRoomId   String   @db.Uuid
+  capacity       Int?
+  createdAt      DateTime @default(now())
+
+  examSchedule       ExamSchedule        @relation(fields: [examScheduleId], references: [id], onDelete: Cascade)
+  schoolRoom         SchoolRoom          @relation(fields: [schoolRoomId], references: [id], onDelete: Restrict)
+  participants       ExamParticipant[]
+  proctorAssignments ProctorAssignment[]
+
+  @@unique([examScheduleId, schoolRoomId])
+  @@index([schoolRoomId])
+  @@map("exam_schedule_rooms")
+}
+
+model ExamParticipant {
+  id               String                @id @default(uuid()) @db.Uuid
+  examScheduleId   String                @db.Uuid
+  studentProfileId String                @db.Uuid
+  scheduleRoomId   String?               @db.Uuid
+  examPaperId      String                @db.Uuid
+  status           ExamParticipantStatus @default(REGISTERED)
+  assignedAt       DateTime              @default(now())
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+
+  examSchedule   ExamSchedule      @relation(fields: [examScheduleId], references: [id], onDelete: Restrict)
+  studentProfile StudentProfile    @relation(fields: [studentProfileId], references: [id], onDelete: Restrict)
+  scheduleRoom   ExamScheduleRoom? @relation(fields: [scheduleRoomId], references: [id], onDelete: SetNull)
+  examPaper      ExamPaper         @relation("ParticipantExamPaper", fields: [examPaperId], references: [id], onDelete: Restrict)
+  schoolClassId  String            @db.Uuid
+  schoolClass    SchoolClass       @relation(fields: [schoolClassId], references: [id], onDelete: Restrict)
+
+  attempt Attempt?
+
+  @@unique([examScheduleId, studentProfileId])
+  @@index([studentProfileId])
+  @@index([scheduleRoomId])
+  @@index([examPaperId])
+  @@index([status])
+  @@map("exam_participants")
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  EXPIRED
+  INVALIDATED
+}
+
+enum DeviceSessionStatus {
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+enum AttemptSyncStatus {
+  RECEIVED
+  PARTIALLY_ACCEPTED
+  REJECTED
+}
+
+enum AttemptRecoveryType {
+  DEVICE_REPLACED
+  SESSION_RESTORED
+  MANUAL_RECOVERY
+}
+
+model Attempt {
+  id            String        @id @default(uuid()) @db.Uuid
+  participantId String        @unique @db.Uuid
+  status        AttemptStatus @default(IN_PROGRESS)
+  startedAt     DateTime
+  deadlineAt    DateTime
+  submittedAt   DateTime?
+  lastSyncedAt  DateTime?
+  serverVersion Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  participant    ExamParticipant           @relation(fields: [participantId], references: [id], onDelete: Restrict)
+  answers        AttemptAnswer[]
+  deviceSessions AttemptDeviceSession[]
+  syncLogs       AttemptSyncLog[]
+  recoveryEvents AttemptRecoveryEvent[]
+  receipt        AttemptSubmissionReceipt?
+  result         ExamResult?
+
+  @@index([status, deadlineAt])
+  @@map("attempts")
+}
+
+model AttemptAnswer {
+  id                  String   @id @default(uuid()) @db.Uuid
+  attemptId           String   @db.Uuid
+  examPaperQuestionId String   @db.Uuid
+  answerData          Json
+  answerVersion       Int      @default(1)
+  receivedAt          DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  attempt           Attempt           @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  examPaperQuestion ExamPaperQuestion @relation(fields: [examPaperQuestionId], references: [id], onDelete: Restrict)
+
+  @@unique([attemptId, examPaperQuestionId])
+  @@index([attemptId, receivedAt])
+  @@map("attempt_answers")
+}
+
+model AttemptDeviceSession {
+  id                    String              @id @default(uuid()) @db.Uuid
+  attemptId             String              @db.Uuid
+  deviceFingerprintHash String
+  sessionTokenHash      String              @unique
+  status                DeviceSessionStatus @default(ACTIVE)
+  ipAddress             String?
+  userAgent             String?
+  startedAt             DateTime            @default(now())
+  lastSeenAt            DateTime            @default(now())
+  revokedAt             DateTime?
+  createdAt             DateTime            @default(now())
+
+  attempt Attempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@index([attemptId, status])
+  @@map("attempt_device_sessions")
+}
+
+model AttemptSyncLog {
+  id            String            @id @default(uuid()) @db.Uuid
+  attemptId     String            @db.Uuid
+  clientBatchId String
+  status        AttemptSyncStatus
+  receivedCount Int               @default(0)
+  acceptedCount Int               @default(0)
+  rejectedCount Int               @default(0)
+  receivedAt    DateTime          @default(now())
+  details       Json?
+
+  attempt Attempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, clientBatchId])
+  @@index([attemptId, receivedAt])
+  @@map("attempt_sync_logs")
+}
+
+model AttemptRecoveryEvent {
+  id          String              @id @default(uuid()) @db.Uuid
+  attemptId   String              @db.Uuid
+  actorUserId String              @db.Uuid
+  eventType   AttemptRecoveryType
+  reason      String
+  metadata    Json?
+  createdAt   DateTime            @default(now())
+
+  attempt Attempt @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  actor   User    @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([attemptId, createdAt])
+  @@index([actorUserId])
+  @@map("attempt_recovery_events")
+}
+
+model AttemptSubmissionReceipt {
+  id          String   @id @default(uuid()) @db.Uuid
+  attemptId   String   @unique @db.Uuid
+  receiptCode String   @unique
+  answerCount Int
+  submittedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  attempt Attempt @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+
+  @@map("attempt_submission_receipts")
+}
+
+enum ExamResultStatus {
+  DRAFT
+  GRADED
+  PUBLISHED
+}
+
+enum ScoreAdjustmentMethod {
+  FLOOR_TO_KKM
+  PROPORTIONAL
+  MANUAL
+}
+
+model ExamResult {
+  id             String           @id @default(uuid()) @db.Uuid
+  attemptId      String           @unique @db.Uuid
+  academicYearId String           @db.Uuid
+  schoolClassId  String           @db.Uuid
+  subjectId      String           @db.Uuid
+  rawScore       Decimal          @db.Decimal(10, 2)
+  adjustedScore  Decimal?         @db.Decimal(10, 2)
+  finalScore     Decimal          @db.Decimal(10, 2)
+  maxScore       Decimal          @db.Decimal(10, 2)
+  status         ExamResultStatus @default(DRAFT)
+  gradedById     String?          @db.Uuid
+  gradedAt       DateTime?
+  publishedAt    DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  attempt             Attempt               @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  academicYear        AcademicYear          @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  schoolClass         SchoolClass           @relation(fields: [schoolClassId], references: [id], onDelete: Restrict)
+  subject             Subject               @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  gradedBy            User?                 @relation(fields: [gradedById], references: [id], onDelete: Restrict)
+  adjustments         ScoreAdjustmentItem[]
+  gradingScaleLevelId String?               @db.Uuid
+  gradingScaleLevel   GradingScaleLevel?    @relation(fields: [gradingScaleLevelId], references: [id], onDelete: SetNull)
+
+  @@index([academicYearId, schoolClassId, subjectId])
+  @@index([status, publishedAt])
+  @@map("exam_results")
+}
+
+model AssessmentThreshold {
+  id             String    @id @default(uuid()) @db.Uuid
+  academicYearId String    @db.Uuid
+  schoolClassId  String    @db.Uuid
+  subjectId      String    @db.Uuid
+  minimumScore   Decimal   @db.Decimal(5, 2)
+  effectiveFrom  DateTime  @db.Date
+  effectiveUntil DateTime? @db.Date
+  createdById    String    @db.Uuid
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  schoolClass  SchoolClass  @relation(fields: [schoolClassId], references: [id], onDelete: Restrict)
+  subject      Subject      @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  createdBy    User         @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([academicYearId, schoolClassId, subjectId, effectiveFrom])
+  @@map("assessment_thresholds")
+}
+
+model ScoreAdjustmentPolicy {
+  id          String                @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  method      ScoreAdjustmentMethod
+  parameters  Json
+  isActive    Boolean               @default(true)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  adjustmentRuns ScoreAdjustmentRun[]
+
+  @@map("score_adjustment_policies")
+}
+
+model ScoreAdjustmentRun {
+  id             String   @id @default(uuid()) @db.Uuid
+  policyId       String   @db.Uuid
+  academicYearId String   @db.Uuid
+  schoolClassId  String   @db.Uuid
+  subjectId      String   @db.Uuid
+  createdById    String   @db.Uuid
+  reason         String
+  parameters     Json
+  createdAt      DateTime @default(now())
+
+  policy       ScoreAdjustmentPolicy @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  academicYear AcademicYear          @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  schoolClass  SchoolClass           @relation(fields: [schoolClassId], references: [id], onDelete: Restrict)
+  subject      Subject               @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  createdBy    User                  @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  items        ScoreAdjustmentItem[]
+
+  @@index([academicYearId, schoolClassId, subjectId])
+  @@index([createdById])
+  @@map("score_adjustment_runs")
+}
+
+model ScoreAdjustmentItem {
+  id            String   @id @default(uuid()) @db.Uuid
+  runId         String   @db.Uuid
+  examResultId  String   @db.Uuid
+  sourceScore   Decimal  @db.Decimal(10, 2)
+  adjustedScore Decimal  @db.Decimal(10, 2)
+  delta         Decimal  @db.Decimal(10, 2)
+  createdAt     DateTime @default(now())
+
+  run        ScoreAdjustmentRun @relation(fields: [runId], references: [id], onDelete: Restrict)
+  examResult ExamResult         @relation(fields: [examResultId], references: [id], onDelete: Restrict)
+
+  @@unique([runId, examResultId])
+  @@index([examResultId])
+  @@map("score_adjustment_items")
+}
+
+enum RankingType {
+  SUBJECT_WITHIN_CLASS
+  SUBJECT_ACROSS_CLASSES
+  OVERALL_WITHIN_CLASS
+  OVERALL_ACROSS_CLASSES
+}
+
+enum RankingScoreSource {
+  RAW_SCORE
+  ADJUSTED_SCORE
+  FINAL_SCORE
+}
+
+enum RankingTieMethod {
+  COMPETITION
+  DENSE
+}
+
+enum RankingSnapshotStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model RankingConfiguration {
+  id                     String             @id @default(uuid()) @db.Uuid
+  name                   String
+  rankingType            RankingType
+  scoreSource            RankingScoreSource @default(FINAL_SCORE)
+  tieMethod              RankingTieMethod   @default(COMPETITION)
+  academicYearId         String             @db.Uuid
+  targetClassId          String?            @db.Uuid
+  subjectId              String?            @db.Uuid
+  periodKey              String?
+  periodLabel            String?
+  minimumCoveragePercent Decimal            @default(100) @db.Decimal(5, 2)
+  isActive               Boolean            @default(false)
+  createdById            String             @db.Uuid
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  targetClass  SchoolClass? @relation(fields: [targetClassId], references: [id], onDelete: Restrict)
+  subject      Subject?     @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  createdBy    User         @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  subjects  RankingConfigurationSubject[]
+  snapshots RankingSnapshot[]
+
+  @@index([academicYearId, rankingType, isActive])
+  @@index([targetClassId])
+  @@index([subjectId])
+  @@map("ranking_configurations")
+}
+
+model RankingConfigurationSubject {
+  id              String  @id @default(uuid()) @db.Uuid
+  configurationId String  @db.Uuid
+  subjectId       String  @db.Uuid
+  weight          Decimal @default(1) @db.Decimal(8, 3)
+
+  configuration RankingConfiguration @relation(fields: [configurationId], references: [id], onDelete: Cascade)
+  subject       Subject              @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+
+  @@unique([configurationId, subjectId])
+  @@index([subjectId])
+  @@map("ranking_configuration_subjects")
+}
+
+model RankingSnapshot {
+  id              String                @id @default(uuid()) @db.Uuid
+  configurationId String                @db.Uuid
+  generatedById   String                @db.Uuid
+  status          RankingSnapshotStatus @default(DRAFT)
+  periodLabel     String?
+  generatedAt     DateTime              @default(now())
+  publishedAt     DateTime?
+  createdAt       DateTime              @default(now())
+
+  configuration RankingConfiguration  @relation(fields: [configurationId], references: [id], onDelete: Restrict)
+  generatedBy   User                  @relation(fields: [generatedById], references: [id], onDelete: Restrict)
+  items         RankingSnapshotItem[]
+
+  @@index([configurationId, generatedAt])
+  @@index([status, publishedAt])
+  @@map("ranking_snapshots")
+}
+
+model RankingSnapshotItem {
+  id                    String   @id @default(uuid()) @db.Uuid
+  snapshotId            String   @db.Uuid
+  studentProfileId      String   @db.Uuid
+  schoolClassId         String?  @db.Uuid
+  rank                  Int
+  score                 Decimal  @db.Decimal(10, 2)
+  subjectCount          Int      @default(0)
+  availableSubjectCount Int      @default(0)
+  coveragePercent       Decimal  @default(0) @db.Decimal(5, 2)
+  createdAt             DateTime @default(now())
+
+  snapshot       RankingSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  studentProfile StudentProfile  @relation(fields: [studentProfileId], references: [id], onDelete: Restrict)
+  schoolClass    SchoolClass?    @relation(fields: [schoolClassId], references: [id], onDelete: Restrict)
+
+  @@unique([snapshotId, studentProfileId])
+  @@index([snapshotId, rank])
+  @@index([studentProfileId])
+  @@index([schoolClassId])
+  @@map("ranking_snapshot_items")
+}
+
+model Permission {
+  id                           String                                  @id @default(uuid()) @db.Uuid
+  code                         String                                  @unique
+  name                         String
+  description                  String?
+  rolePermissions              RolePermission[]
+  examCollaboratorPermissions  ExamCollaboratorPermission[]
+  eventCollaboratorPermissions AssessmentEventCollaboratorPermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String @db.Uuid
+  permissionId String @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model ExamCollaborator {
+  id        String   @id @default(uuid()) @db.Uuid
+  examId    String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  exam        Exam                         @relation(fields: [examId], references: [id], onDelete: Cascade)
+  user        User                         @relation(fields: [userId], references: [id], onDelete: Restrict)
+  permissions ExamCollaboratorPermission[]
+
+  @@unique([examId, userId])
+  @@map("exam_collaborators")
+}
+
+model ExamCollaboratorPermission {
+  collaboratorId String @db.Uuid
+  permissionId   String @db.Uuid
+
+  collaborator ExamCollaborator @relation(fields: [collaboratorId], references: [id], onDelete: Cascade)
+  permission   Permission       @relation(fields: [permissionId], references: [id], onDelete: Restrict)
+
+  @@id([collaboratorId, permissionId])
+  @@map("exam_collaborator_permissions")
+}
+
+model AssessmentEventCollaborator {
+  id                String   @id @default(uuid()) @db.Uuid
+  assessmentEventId String   @db.Uuid
+  userId            String   @db.Uuid
+  createdAt         DateTime @default(now())
+
+  assessmentEvent AssessmentEvent                         @relation(fields: [assessmentEventId], references: [id], onDelete: Cascade)
+  user            User                                    @relation(fields: [userId], references: [id], onDelete: Restrict)
+  permissions     AssessmentEventCollaboratorPermission[]
+
+  @@unique([assessmentEventId, userId])
+  @@map("assessment_event_collaborators")
+}
+
+model AssessmentEventCollaboratorPermission {
+  collaboratorId String @db.Uuid
+  permissionId   String @db.Uuid
+
+  collaborator AssessmentEventCollaborator @relation(fields: [collaboratorId], references: [id], onDelete: Cascade)
+  permission   Permission                  @relation(fields: [permissionId], references: [id], onDelete: Restrict)
+
+  @@id([collaboratorId, permissionId])
+  @@map("assessment_event_collaborator_permissions")
+}
+
+model ProctorAssignment {
+  id               String   @id @default(uuid()) @db.Uuid
+  teacherProfileId String   @db.Uuid
+  examScheduleId   String   @db.Uuid
+  scheduleRoomId   String?  @db.Uuid
+  assignedById     String   @db.Uuid
+  startsAt         DateTime
+  endsAt           DateTime
+  createdAt        DateTime @default(now())
+
+  teacherProfile TeacherProfile    @relation(fields: [teacherProfileId], references: [id], onDelete: Restrict)
+  examSchedule   ExamSchedule      @relation(fields: [examScheduleId], references: [id], onDelete: Cascade)
+  scheduleRoom   ExamScheduleRoom? @relation(fields: [scheduleRoomId], references: [id], onDelete: Restrict)
+  assignedBy     User              @relation("ProctorAssignmentCreator", fields: [assignedById], references: [id], onDelete: Restrict)
+
+  @@index([examScheduleId, scheduleRoomId])
+  @@index([teacherProfileId, startsAt, endsAt])
+  @@map("proctor_assignments")
+}
+
+model AssessmentCardSetting {
+  id                 String   @id @default(uuid()) @db.Uuid
+  assessmentEventId  String   @unique @db.Uuid
+  isEnabled          Boolean  @default(false)
+  cardWidthMm        Int      @default(90)
+  cardHeightMm       Int      @default(55)
+  showStudentPhoto   Boolean  @default(false)
+  showQrCode         Boolean  @default(true)
+  showScheduleOnBack Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  assessmentEvent AssessmentEvent @relation(fields: [assessmentEventId], references: [id], onDelete: Cascade)
+
+  @@map("assessment_card_settings")
+}
+
+model AssessmentParticipantToken {
+  id                String    @id @default(uuid()) @db.Uuid
+  assessmentEventId String    @db.Uuid
+  studentProfileId  String    @db.Uuid
+  tokenHash         String    @unique
+  issuedAt          DateTime  @default(now())
+  revokedAt         DateTime?
+  createdAt         DateTime  @default(now())
+
+  assessmentEvent AssessmentEvent @relation(fields: [assessmentEventId], references: [id], onDelete: Restrict)
+  studentProfile  StudentProfile  @relation(fields: [studentProfileId], references: [id], onDelete: Restrict)
+
+  @@map("assessment_participant_tokens")
+}
+
+model DocumentTemplate {
+  id               String   @id @default(uuid()) @db.Uuid
+  code             String   @unique
+  name             String
+  description      String?
+  version          Int      @default(1)
+  templateData     Json
+  isActive         Boolean  @default(true)
+  schoolSettingsId String   @default("main")
+  createdById      String   @db.Uuid
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  schoolSettings SchoolSettings @relation(fields: [schoolSettingsId], references: [id], onDelete: Restrict)
+  createdBy      User           @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([isActive])
+  @@map("document_templates")
+}
+
+model SchoolDocumentSetting {
+  id               String   @id @default(uuid()) @db.Uuid
+  schoolSettingsId String   @default("main")
+  key              String
+  value            Json
+  updatedById      String?  @db.Uuid
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  schoolSettings SchoolSettings @relation(fields: [schoolSettingsId], references: [id], onDelete: Restrict)
+  updatedBy      User?          @relation("DocumentSettingUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@unique([schoolSettingsId, key])
+  @@map("school_document_settings")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  actorUserId String?  @db.Uuid
+  action      String
+  entityType  String
+  entityId    String?
+  description String?
+  oldData     Json?
+  newData     Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  actor User? @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([actorUserId, createdAt])
+  @@index([entityType, entityId])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}
+
+model SystemSetting {
+  id          String   @id @default(uuid()) @db.Uuid
+  key         String   @unique
+  value       Json
+  description String?
+  updatedById String?  @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  updatedBy User? @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@map("system_settings")
+}
+
+model InstallationState {
+  id                    String    @id @default("main")
+  installationCompleted Boolean   @default(false)
+  installerLocked       Boolean   @default(false)
+  environment           String?
+  installedAt           DateTime?
+  lastCheckedAt         DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("installation_state")
+}
+
+model GradingScale {
+  id             String   @id @default(uuid()) @db.Uuid
+  name           String
+  academicYearId String?  @db.Uuid
+  subjectId      String?  @db.Uuid
+  description    String?
+  isActive       Boolean  @default(true)
+  createdById    String   @db.Uuid
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  academicYear AcademicYear?       @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  subject      Subject?            @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  createdBy    User                @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  levels       GradingScaleLevel[]
+
+  @@index([academicYearId, subjectId, isActive])
+  @@map("grading_scales")
+}
+
+model GradingScaleLevel {
+  id             String  @id @default(uuid()) @db.Uuid
+  gradingScaleId String  @db.Uuid
+  label          String
+  description    String?
+  minimumScore   Decimal @db.Decimal(5, 2)
+  maximumScore   Decimal @db.Decimal(5, 2)
+  sortOrder      Int
+
+  gradingScale GradingScale @relation(fields: [gradingScaleId], references: [id], onDelete: Cascade)
+  examResults  ExamResult[]
+
+  @@unique([gradingScaleId, label])
+  @@unique([gradingScaleId, sortOrder])
+  @@map("grading_scale_levels")
+}

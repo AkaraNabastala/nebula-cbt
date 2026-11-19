@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", sans-serif;
+  --color-app-bg: var(--app-bg);
+  --color-app-surface: var(--app-surface);
+  --color-app-text: var(--app-text);
+  --color-app-muted: var(--app-muted);
+  --color-app-border: var(--app-border);
+  --color-app-primary: var(--app-primary);
+  --color-app-primary-hover: var(--app-primary-hover);
+  --color-app-soft: var(--app-soft);
+  --color-app-input: var(--app-input);
+}
+
+:root {
+  font-family: "Poppins", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --app-bg: #f4f8fc;
+  --app-surface: #ffffff;
+  --app-text: #183b5b;
+  --app-muted: #536b80;
+  --app-border: #d8e4ee;
+  --app-primary: #183b5b;
+  --app-primary-hover: #245477;
+  --app-soft: #e7f3fb;
+  --app-input: #ffffff;
+}
+
+:root[data-theme="dark"] {
+  --app-bg: #101c29;
+  --app-surface: #192b3d;
+  --app-text: #edf5fc;
+  --app-muted: #b3c4d3;
+  --app-border: #344b60;
+  --app-primary: #8bcdf2;
+  --app-primary-hover: #b2e0fa;
+  --app-soft: #243c51;
+  --app-input: #142536;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--app-bg);
+  color: var(--app-text);
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+:focus-visible {
+  outline: 3px solid #318bcb;
+  outline-offset: 3px;
+}
+
+::selection {
+  background: #b9e3fa;
+  color: #183b5b;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
