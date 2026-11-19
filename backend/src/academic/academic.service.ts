@@ -30,7 +30,6 @@ export class AcademicService {
     if (!institutionType || institutionType.length > 80 || !educationLevel || educationLevel.length > 80) throw new BadRequestException('Jenis lembaga dan jenjang pendidikan wajib diisi.');
     if (departments.length > 200 || departments.some((item) => typeof item !== 'string' || !item.trim() || item.trim().length > 120)) throw new BadRequestException('Daftar jurusan tidak valid.');
     const normalizedDepartments = [...new Set((departments as string[]).map((item) => item.trim()))];
-    if (!departmentsEnabled && normalizedDepartments.length) throw new BadRequestException('Aktifkan pengelolaan jurusan sebelum menyimpan daftar jurusan.');
     const nextValue = { institutionType, educationLevel, departmentsEnabled, departments: normalizedDepartments };
     return this.prisma.$transaction(async (tx) => {
       const setting = await tx.systemSetting.upsert({
