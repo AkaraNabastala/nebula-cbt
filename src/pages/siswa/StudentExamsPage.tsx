@@ -6,7 +6,7 @@ type StudentExam = {
   status: string;
   exam: { id: string; name: string; status: string; subject: { name: string }; assessmentEvent: { name: string } };
   schedule: { id: string; sessionName: string; startsAt: string; endsAt: string; durationMinutes: number; status: string };
-  attempt: { id: string; status: string; startedAt: string; deadlineAt: string; submittedAt: string | null } | null;
+  attempt: { id: string; status: string; startedAt: string; deadlineAt: string; submittedAt: string | null; receipt: Receipt | null } | null;
 };
 type ExamQuestion = {
   id: string;
@@ -322,7 +322,7 @@ export function StudentExamsPage({ token }: { token: string | null }) {
             const closed = exam.attempt?.status === "SUBMITTED" || exam.attempt?.status === "EXPIRED";
             return <article key={exam.id} className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5">
               <div className="min-w-0"><h2 className="font-semibold text-app-text">{exam.exam.name}</h2><p className="mt-1 text-xs text-app-muted">{exam.exam.subject.name} · {exam.exam.assessmentEvent.name}</p><p className="mt-2 text-xs text-app-muted">{exam.schedule.sessionName} · {formatDate(exam.schedule.startsAt)} – {formatDate(exam.schedule.endsAt)}</p><p className="mt-1 text-[11px] text-app-muted">Durasi {exam.schedule.durationMinutes} menit</p></div>
-              {closed ? <span className="text-xs font-medium text-app-muted">{exam.attempt?.status === "EXPIRED" ? "Waktu habis" : "Selesai"}</span> : <button type="button" onClick={() => void startExam(exam)} disabled={startingId === exam.id || exam.schedule.status !== "PUBLISHED"} className="min-h-11 rounded-lg bg-app-primary px-4 text-xs font-semibold text-app-primary-contrast disabled:opacity-50">{startingId === exam.id ? "Membuka…" : started ? "Lanjutkan ujian" : "Mulai ujian"}</button>}
+              {closed ? <div className="text-right"><span className="text-xs font-medium text-app-muted">{exam.attempt?.status === "EXPIRED" ? "Waktu habis" : "Selesai"}</span>{exam.attempt?.receipt && <p className="mt-1 font-mono text-[11px] text-app-muted">{exam.attempt.receipt.receiptCode}</p>}</div> : <button type="button" onClick={() => void startExam(exam)} disabled={startingId === exam.id || exam.schedule.status !== "PUBLISHED"} className="min-h-11 rounded-lg bg-app-primary px-4 text-xs font-semibold text-app-primary-contrast disabled:opacity-50">{startingId === exam.id ? "Membuka…" : started ? "Lanjutkan ujian" : "Mulai ujian"}</button>}
             </article>;
           })}
         </div>
