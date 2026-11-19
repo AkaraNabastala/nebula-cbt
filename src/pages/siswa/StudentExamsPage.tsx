@@ -30,7 +30,7 @@ type StartResponse = {
   answers?: { questionId: string; answerData: Record<string, unknown>; answerVersion: number }[];
   receipt?: { receiptCode: string; submittedAt: string; answerCount: number } | null;
 };
-type SyncResponse = { status: string; acceptedCount: number; rejectedCount: number; serverTime: string; duplicate: boolean };
+type SyncResponse = { status: string; acceptedCount: number; rejectedCount: number; acceptedQuestionIds: string[]; rejectedQuestionIds: string[]; serverTime: string; duplicate: boolean };
 type Receipt = { receiptCode: string; submittedAt: string; answerCount: number };
 
 function formatDate(value: string) {
@@ -110,8 +110,9 @@ export function StudentExamsPage({ token }: { token: string | null }) {
       }
       setPendingAnswers((current) => {
         const next = { ...current };
-        for (const sent of batch) {
-          if (next[sent.questionId]?.answerVersion === sent.answerVersion) delete next[sent.questionId];
+        for (const questionId of result.acceptedQuestionIds) {
+          const sent = batch.find((item) => item.questionId === questionId);
+          if (sent && next[questionId]?.answerVersion === sent.answerVersion) delete next[questionId];
         }
         return next;
       });
