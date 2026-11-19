@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useRef, type FormEvent } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, RefreshCw, X } from "lucide-react";
 import { apiRequest } from "../../lib/api";
 import { toast } from "sonner";
 
@@ -32,23 +32,24 @@ export function PeopleManagementPage({ token, section }: { token: string | null;
     setLoading(true);
     setError("");
     try {
-      const [options, enrollmentData, assignmentData] = await Promise.all([
-        apiRequest<{ students: Person[]; teachers: Person[]; classes: SchoolClass[]; subjects: Subject[] }>("/people-management/options", { token }),
-        apiRequest<Enrollment[]>("/people-management/enrollments", { token }),
-        apiRequest<TeacherAssignment[]>("/people-management/teacher-assignments", { token }),
-      ]);
-      setStudents(options.students);
-      setTeachers(options.teachers);
+      const options = await apiRequest<{ students: Person[]; teachers: Person[]; classes: SchoolClass[]; subjects: Subject[] }>("/people-management/options", { token });
       setClasses(options.classes);
-      setSubjects(options.subjects);
-      setEnrollments(enrollmentData);
-      setAssignments(assignmentData);
+      if (section === "enrollments") {
+        const enrollmentData = await apiRequest<Enrollment[]>("/people-management/enrollments", { token });
+        setStudents(options.students);
+        setEnrollments(enrollmentData);
+      } else {
+        const assignmentData = await apiRequest<TeacherAssignment[]>("/people-management/teacher-assignments", { token });
+        setTeachers(options.teachers);
+        setSubjects(options.subjects);
+        setAssignments(assignmentData);
+      }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Data penempatan gagal dimuat.");
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, section]);
 
   useEffect(() => {
     if (showActionDialog && actionDialogRef.current && !actionDialogRef.current.open) actionDialogRef.current.showModal();
@@ -141,7 +142,10 @@ export function PeopleManagementPage({ token, section }: { token: string | null;
     <section className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div><p className="text-xs font-semibold tracking-[0.12em] text-[#318BCB]">ADMINISTRASI SEKOLAH / PENGELOLAAN</p><h1 className="mt-2 text-2xl font-semibold tracking-tight text-app-text">{section === "enrollments" ? "Penempatan siswa" : "Penugasan guru"}</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-app-muted">{section === "enrollments" ? "Tempatkan siswa ke rombongan belajar dan kelola riwayat kelasnya." : "Atur guru pengampu berdasarkan mata pelajaran dan kelas."}</p></div>
-        <button type="button" onClick={() => { setError(""); setShowActionDialog(true); }} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-app-primary px-4 text-sm font-semibold text-app-primary-contrast hover:bg-app-primary-hover"><Plus size={16} /> {section === "enrollments" ? "Tempatkan siswa" : "Tugaskan guru"}</button>
+        <div className="flex shrink-0 items-center gap-2">
+          <button type="button" onClick={() => void load()} disabled={loading} aria-label="Muat ulang data" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-app-border px-3 text-sm font-medium text-app-text hover:bg-app-bg disabled:opacity-50"><RefreshCw size={15} className={loading ? "animate-spin" : ""} /><span className="hidden sm:inline">Muat ulang</span></button>
+          <button type="button" onClick={() => { setError(""); setShowActionDialog(true); }} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-app-primary px-4 text-sm font-semibold text-app-primary-contrast hover:bg-app-primary-hover"><Plus size={16} /> {section === "enrollments" ? "Tempatkan siswa" : "Tugaskan guru"}</button>
+        </div>
       </header>
       {error && <div role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-app-text">{error}</div>}
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px]">
