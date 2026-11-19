@@ -227,4 +227,54 @@ export class QuestionBanksService {
       return question;
     });
   }
+
+  async updateQuestionStatus(
+    bankId: string,
+    questionId: string,
+    status: 'DRAFT' | 'REVIEWED' | 'PUBLISHED' | 'ARCHIVED',
+    actor: Actor,
+  ) {
+    const bank = await this.assertBankAccess(bankId, actor);
+    const current = await this.prisma.question.findFirst({
+      where: { id: questionId, questionBankId: bankId },
+      select: { id: true, status: true, type: true },
+    });
+    if (!current) throw new NotFoundException('Soal tidak ditemukan pada bank ini.');
+
+    const allowedTransitions: Record<string, string[]> = {
+      DRAFT: ['REVIEWED'],
+      REVIEWED: ['DRAFT', 'PUBLISHED'],
+      PUBLISHED: ['ARCHIVED'],
+      ARCHIVED: [],
+    };
+    if (!allowedTransitions[current.status]?.includes(status)) {
+      throw new BadRequestException(`Perubahan status dari ${current.status} ke ${status} tidak diizinkan.`);
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.question.update({
+        where: { id: questionId },
+        data: {
+          status,
+          reviewedAt: status === 'REVIEWED' || status === 'PUBLISHED' ? new Date() : null,
+        },
+        select: { id: true, status: true, reviewedAt: true, updatedAt: true },
+      });
+      await tx.auditLog.create({
+        data: {
+          actorUserId: actor.id,
+          action: 'QUESTION_STATUS_CHANGED',
+          entityType: 'QUESTION',
+          entityId: questionId,
+          description: `Status soal di bank ${bank.name} diubah dari ${current.status} menjadi ${status}.`,
+          ipAddress: actor.ipAddress,
+          userAgent: actor.userAgent,
+          oldData: { status: current.status },
+          newData: { status },
+        },
+      });
+      return updated;
+    });
+  }
+
 }
