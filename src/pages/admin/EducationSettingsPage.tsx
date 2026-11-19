@@ -109,7 +109,7 @@ export function EducationSettingsPage({ token }: { token: string | null }) {
                 <option value="SMA/MA">SMA/MA</option>
                 <option value="SMK">SMK</option>
                 <option value="Perguruan Tinggi">Perguruan Tinggi</option>
-                <option value="Pendidikan Kesetaraan">Pendidikan Kesetaraan</option>
+                <option value="Pendidikan Kesetaraan">Pendidikan Kesetaraan</option>\n                <option value="Pascasarjana / Profesi">Pascasarjana / Profesi</option>
                 <option value="Lainnya">Lainnya</option>
               </select>
             </label>
