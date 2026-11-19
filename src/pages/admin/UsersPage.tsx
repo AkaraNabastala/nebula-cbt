@@ -163,7 +163,7 @@ export function UsersPage({ token }: { token: string | null }) {
     <div className="space-y-7">
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-semibold tracking-widest text-[#318BCB]">ADMINISTRASI</p>
+          <p className="text-xs font-semibold tracking-widest text-app-primary">ADMINISTRASI</p>
           <h1 className="mt-2 text-2xl font-bold text-app-text">Pengguna dan Hak Akses</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-app-muted">
             Buat akun, telusuri pengguna, dan kelola status akses administrator, guru, serta siswa.
@@ -172,7 +172,7 @@ export function UsersPage({ token }: { token: string | null }) {
         <button
           type="button"
           onClick={() => { setIsCreating((value) => !value); setError(""); }}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-app-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-app-primary-hover active:scale-[0.99]"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-app-primary px-4 py-2 text-sm font-semibold text-app-primary-contrast transition-colors hover:bg-app-primary-hover active:scale-[0.99]"
           aria-expanded={isCreating}
         >
           <Plus size={17} aria-hidden="true" />
