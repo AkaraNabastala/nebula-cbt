@@ -177,9 +177,18 @@ export function DashboardPage({
             Ringkasan
           </button>
           {role === "ADMIN" && (
+            <button type="button" onClick={() => setPage("academic")}
+              aria-current={page === "academic" ? "page" : undefined}
+              className={`min-h-11 rounded-lg px-3 py-2 text-xs font-medium ${
+                page === "academic" ? "bg-app-soft text-app-primary" : "text-app-muted"
+              }`}>
+              Akademik
+            </button>
+          )}
+          {role === "ADMIN" && (
             <button type="button" onClick={() => setPage("users")}
               aria-current={page === "users" ? "page" : undefined}
-              className={`rounded-lg px-3 py-2 text-xs font-medium ${
+              className={`min-h-11 rounded-lg px-3 py-2 text-xs font-medium ${
                 page === "users" ? "bg-app-soft text-app-primary" : "text-app-muted"
               }`}>
               Pengguna
