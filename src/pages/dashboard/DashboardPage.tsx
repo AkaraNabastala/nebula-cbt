@@ -46,12 +46,14 @@ function getPrimaryRole(roles: string[]): string {
 
 export function DashboardPage({
   user,
+  token,
   page,
   setPage,
   onLogout,
   onChangePassword,
 }: {
   user: AuthUser;
+  token: string | null;
   page: DashboardSection;
   setPage: (page: DashboardSection) => void;
   onLogout: () => Promise<void>;
@@ -187,7 +189,7 @@ export function DashboardPage({
           {page === "account" ? (
             <AccountPage user={user} onChangePassword={onChangePassword} />
           ) : page === "users" && role === "ADMIN" ? (
-            <UsersPage />
+            <UsersPage token={token} />
           ) : role === "ADMIN" ? (
             <AdminDashboardPage user={user} detail={detail} />
           ) : role === "TEACHER" ? (
