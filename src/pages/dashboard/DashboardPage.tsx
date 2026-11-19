@@ -6,6 +6,7 @@ import {
   Users,
   GraduationCap,
   BookOpen,
+  ClipboardList,
 } from "lucide-react";
 import type { AuthUser } from "../../contexts/AuthContext";
 import { Brand } from "../../components/shared/Brand";
@@ -16,8 +17,9 @@ import { SiswaDashboardPage } from "../siswa/DashboardPage";
 import { UsersPage } from "../admin/UsersPage";
 import { AcademicPage } from "../admin/AcademicPage";
 import { QuestionsPage } from "../guru/QuestionsPage";
+import { ExamOperationsPage } from "../guru/ExamOperationsPage";
 
-export type DashboardSection = "dashboard" | "account" | "users" | "academic" | "questions";
+export type DashboardSection = "dashboard" | "account" | "users" | "academic" | "questions" | "exams";
 
 const roleDetails: Record<string, {
   label: string;
@@ -88,6 +90,11 @@ export function DashboardPage({
                 <BookOpen size={17} /> Bank soal
               </button>
             )}
+            {(role === "ADMIN" || role === "TEACHER") && (
+              <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={navClass(page === "exams")}>
+                <ClipboardList size={17} /> Operasional ujian
+              </button>
+            )}
             {role === "ADMIN" && (
               <button type="button" onClick={() => setPage("academic")} aria-current={page === "academic" ? "page" : undefined} className={navClass(page === "academic")}>
                 <GraduationCap size={17} /> Akademik dan Kelas
@@ -115,7 +122,7 @@ export function DashboardPage({
           <div className="hidden text-xs text-app-muted lg:block">
             Workspace <span className="mx-2">/</span>
             <span className="font-medium text-app-text">
-              {page === "dashboard" ? "Ringkasan" : page === "users" ? "Pengguna dan Hak Akses" : page === "academic" ? "Akademik dan Kelas" : page === "questions" ? "Bank soal" : "Akun saya"}
+              {page === "dashboard" ? "Ringkasan" : page === "users" ? "Pengguna dan Hak Akses" : page === "academic" ? "Akademik dan Kelas" : page === "questions" ? "Bank soal" : page === "exams" ? "Operasional ujian" : "Akun saya"}
             </span>
           </div>
           <div className="ml-auto flex items-center gap-3">
@@ -129,6 +136,7 @@ export function DashboardPage({
         <nav aria-label="Navigasi ringkas" className="flex flex-wrap gap-1.5 border-b border-app-border bg-app-surface px-4 py-2 lg:hidden">
           <button type="button" onClick={() => setPage("dashboard")} aria-current={page === "dashboard" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "dashboard" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Ringkasan</button>
           {(role === "ADMIN" || role === "TEACHER") && <button type="button" onClick={() => setPage("questions")} aria-current={page === "questions" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "questions" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Bank soal</button>}
+          {(role === "ADMIN" || role === "TEACHER") && <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "exams" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Ujian</button>}
           {role === "ADMIN" && <button type="button" onClick={() => setPage("academic")} aria-current={page === "academic" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "academic" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Akademik</button>}
           {role === "ADMIN" && <button type="button" onClick={() => setPage("users")} aria-current={page === "users" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "users" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Pengguna</button>}
           <button type="button" onClick={() => setPage("account")} aria-current={page === "account" ? "page" : undefined} className={`min-h-11 rounded-lg px-3 text-xs font-medium ${page === "account" ? "bg-app-soft text-app-primary" : "text-app-muted"}`}>Akun saya</button>
@@ -139,7 +147,8 @@ export function DashboardPage({
             : page === "users" && role === "ADMIN" ? <UsersPage token={token} />
               : page === "academic" && role === "ADMIN" ? <AcademicPage token={token} />
                 : page === "questions" && (role === "ADMIN" || role === "TEACHER") ? <QuestionsPage token={token} />
-                  : role === "ADMIN" ? <AdminDashboardPage user={user} detail={detail} />
+                  : page === "exams" && (role === "ADMIN" || role === "TEACHER") ? <ExamOperationsPage token={token} />
+                    : role === "ADMIN" ? <AdminDashboardPage user={user} detail={detail} />
                     : role === "TEACHER" ? <GuruDashboardPage user={user} detail={detail} />
                       : <SiswaDashboardPage user={user} detail={detail} />}
         </main>
