@@ -20,7 +20,18 @@ export class AcademicService {
     return setting?.value ?? { institutionType: 'Sekolah / lembaga pendidikan', institutionName: '', logoDataUrl: '', educationLevel: 'Belum ditentukan', departmentsEnabled: false, departments: [] };
   }
 
+  async getInstitutionBranding() {
+    const setting = await this.prisma.systemSetting.findUnique({ where: { key: 'education_structure' } });
+    const value = setting?.value as { institutionName?: string; logoDataUrl?: string } | undefined;
+    return { institutionName: value?.institutionName ?? '', logoDataUrl: value?.logoDataUrl ?? '' };
+  }
+
   async updateEducationSettings(input: unknown, actor: Actor) {
+    const existing = await this.prisma.systemSetting.findUnique({ where: { key: 'education_structure' } });
+    const current = existing?.value as { educationLevel?: string } | undefined;
+    if (current?.educationLevel && current.educationLevel !== 'Belum ditentukan') {
+      throw new ConflictException('Setup lembaga sudah selesai. Hubungi pengelola sistem untuk perubahan identitas.');
+    }
     if (!input || typeof input !== 'object' || Array.isArray(input)) throw new BadRequestException('Pengaturan lembaga tidak valid.');
     const value = input as Record<string, unknown>;
     const institutionType = typeof value.institutionType === 'string' ? value.institutionType.trim() : '';
