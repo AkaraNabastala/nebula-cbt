@@ -146,7 +146,7 @@ export function DashboardPage({
             <span>Menu workspace</span>
             <span className="font-normal text-app-muted">{page === "dashboard" ? "Ringkasan" : page === "users" ? "Pengguna" : page === "academic" ? "Akademik" : page === "questions" ? "Bank soal" : page === "exams" ? (role === "STUDENT" ? "Ujian saya" : "Operasional ujian") : page === "results" ? "Penilaian dan hasil" : page === "people" ? "Siswa dan penugasan" : page === "audit" ? "Audit log" : "Akun saya"}</span>
           </summary>
-          <nav aria-label="Navigasi utama seluler" onClick={(event) => { if ((event.target as HTMLElement).closest("button")) { const menu = event.currentTarget.closest("details"); if (menu) menu.open = false; } }} className="grid grid-cols-2 gap-2 px-4 pb-3 sm:grid-cols-3">
+          <nav aria-label="Navigasi utama seluler" onClick={(event) => { if ((event.target as HTMLElement).closest("button")) { const menu = event.currentTarget.closest("details") as HTMLDetailsElement | null; if (menu) menu.open = false; } }} className="grid grid-cols-2 gap-2 px-4 pb-3 sm:grid-cols-3">
             <button type="button" onClick={() => setPage("dashboard")} aria-current={page === "dashboard" ? "page" : undefined} className={navClass(page === "dashboard")}>Ringkasan</button>
             {(role === "ADMIN" || role === "TEACHER") && <button type="button" onClick={() => setPage("questions")} aria-current={page === "questions" ? "page" : undefined} className={navClass(page === "questions")}>Bank soal</button>}
             {(role === "ADMIN" || role === "TEACHER") && <button type="button" onClick={() => setPage("exams")} aria-current={page === "exams" ? "page" : undefined} className={navClass(page === "exams")}>Operasional ujian</button>}
