@@ -8,9 +8,10 @@ import { AcademicModule } from './academic/academic.module.js';
 import { QuestionBanksModule } from './question-banks/question-banks.module.js';
 import { ExamOperationsModule } from './exam-operations/exam-operations.module.js';
 import { StudentExamsModule } from './student-exams/student-exams.module.js';
+import { AssessmentResultsModule } from './assessment-results/assessment-results.module.js';
 
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule, AcademicModule, QuestionBanksModule, ExamOperationsModule, StudentExamsModule],
+  imports: [PrismaModule, AuthModule, UsersModule, AcademicModule, QuestionBanksModule, ExamOperationsModule, StudentExamsModule, AssessmentResultsModule],
   controllers: [AppController],
   providers: [AppService],
 })
