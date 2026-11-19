@@ -147,6 +147,12 @@ export class AcademicService {
   async createClass(dto: CreateClassDto, actor: Actor) {
     const year = await this.prisma.academicYear.findUnique({ where: { id: dto.academicYearId } });
     if (!year) throw new NotFoundException('Tahun ajaran tidak ditemukan.');
+    if (dto.departmentName?.trim()) {
+      const settings = await this.getEducationSettings() as { departmentsEnabled?: boolean; departments?: unknown[] };
+      if (!settings.departmentsEnabled || !Array.isArray(settings.departments) || !settings.departments.includes(dto.departmentName.trim())) {
+        throw new BadRequestException('Jurusan tidak aktif atau belum terdaftar pada pengaturan lembaga.');
+      }
+    }
     if (dto.homeroomTeacherId) {
       const teacher = await this.prisma.teacherProfile.findUnique({ where: { id: dto.homeroomTeacherId } });
       if (!teacher) throw new NotFoundException('Profil guru wali tidak ditemukan.');
