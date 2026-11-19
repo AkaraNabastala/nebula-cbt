@@ -80,8 +80,8 @@ export function DashboardPage({
     `flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary ${active ? "bg-app-soft text-app-primary" : "text-app-muted hover:bg-app-bg hover:text-app-text"}`;
 
   return (
-    <div className="min-h-screen bg-app-bg lg:flex">
-      <aside className="hidden w-[252px] shrink-0 flex-col border-r border-app-border bg-app-surface px-5 py-6 lg:flex">
+    <div className="min-h-dvh bg-app-bg lg:flex">
+      <aside className="sticky top-0 hidden h-dvh w-[252px] shrink-0 flex-col overflow-y-auto border-r border-app-border bg-app-surface px-4 py-5 lg:flex">
         <Brand />
         <div className="mt-10">
           <p className="mb-3 px-3 text-[10px] font-semibold tracking-[0.15em] text-app-muted">WORKSPACE</p>
@@ -123,7 +123,7 @@ export function DashboardPage({
       </aside>
 
       <div className="min-w-0 flex-1">
-        <header className="flex min-h-[76px] items-center justify-between gap-4 border-b border-app-border bg-app-surface px-5 sm:px-8">
+        <header className="flex min-h-16 items-center justify-between gap-4 border-b border-app-border bg-app-surface px-5 sm:px-7">
           <div className="flex items-center gap-3 lg:hidden"><Brand compact /><span className="text-sm font-bold text-app-text">Nebula CBT</span></div>
           <div className="hidden text-xs text-app-muted lg:block">
             Workspace <span className="mx-2">/</span>
@@ -158,7 +158,7 @@ export function DashboardPage({
           </nav>
         </details>
 
-        <main className="mx-auto w-full max-w-[1440px] px-5 py-8 sm:px-8 sm:py-10">
+        <main className="mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-7 sm:py-6">
           {page === "account" ? <AccountPage user={user} onChangePassword={onChangePassword} />
             : page === "users" && role === "ADMIN" ? <UsersPage token={token} />
               : page === "academic" && role === "ADMIN" ? <AcademicPage token={token} />
