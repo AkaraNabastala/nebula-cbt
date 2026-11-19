@@ -200,9 +200,6 @@ export class StudentExamsService {
 
   async resume(attemptId: string, sessionToken: string | undefined, actor: Actor) {
     const studentProfileId = await this.studentProfileId(actor);
-    await this.prisma.$transaction(async (tx) => {
-      await this.assertSession(tx, attemptId, sessionToken, studentProfileId);
-    });
     const attempt = await this.prisma.attempt.findFirst({
       where: { id: attemptId, participant: { studentProfileId } },
       include: {
@@ -212,6 +209,11 @@ export class StudentExamsService {
       },
     });
     if (!attempt) throw new NotFoundException('Percobaan ujian tidak ditemukan.');
+    if (attempt.status === 'IN_PROGRESS') {
+      await this.prisma.$transaction(async (tx) => {
+        await this.assertSession(tx, attemptId, sessionToken, studentProfileId);
+      });
+    }
     return {
       attemptId: attempt.id,
       status: attempt.status,
@@ -404,13 +406,13 @@ export class StudentExamsService {
   async submit(attemptId: string, sessionToken: string | undefined, actor: Actor) {
     const studentProfileId = await this.studentProfileId(actor);
     return this.prisma.$transaction(async (tx) => {
-      await this.assertSession(tx, attemptId, sessionToken, studentProfileId);
       const attempt = await tx.attempt.findFirst({
         where: { id: attemptId, participant: { studentProfileId } },
         select: { id: true, status: true, deadlineAt: true, receipt: true },
       });
       if (!attempt) throw new NotFoundException('Percobaan ujian tidak ditemukan.');
       if (attempt.receipt) return { status: attempt.status, receipt: attempt.receipt, alreadySubmitted: true };
+      await this.assertSession(tx, attemptId, sessionToken, studentProfileId);
       if (attempt.status !== 'IN_PROGRESS') throw new ConflictException('Percobaan ujian sudah ditutup.');
       return this.finalize(tx, attemptId, new Date() >= attempt.deadlineAt);
     });
